@@ -17,7 +17,7 @@ Para instalar la libreria de “DANE.EMMET” se realiza con el comando
 
 ``` r
 #instalar la libreria
-remotes::install_github("NataliArteaga/DANE.EMMET")
+remotes::install_github("sub-dane/EMMET")
 #cargar la libreria
 library(DANE.EMMET)
 ```
