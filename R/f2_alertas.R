@@ -1,0 +1,262 @@
+#' Identificación de alertas
+#'
+#' Función para identificar que variables dentro de cada establecimiento  pueden llegar a ser casos
+#' de imputación, ya sean imputación deuda o por casos especiales.
+#'
+#' \itemize{
+#'
+#' \item Imputación deuda: son todos los establecimientos cuya novedad en la base original tienen valor de 5
+#' (deuda), luego después de la imputación el código de novedad pasa a ser 98 (imputado por deuda).
+#'
+#' \item Casos especiales: son aquellos establecimientos de las cuales se detectó que el dato informado
+#' no es lo esperado, se llama al establecimiento para confirmar que el dato reportado es el que es, en dado caso que no exista respuesta por parte de ellos se toma el dato como un caso especial y se procede a imputar.
+#'}
+#' @param mes Definir el mes a ejecutar, ej: 11
+#'
+#' @param anio Definir el año a ejecutar, ej: 2022
+#'
+#' @param directorio definir el directorio donde se encuentran ubicado los datos de entrada.
+#'
+#' @param avance Denifir que porcentaje de la base va a ser procesada para detectar alertas, por defecto el valor
+#' esta en 100, lo cual indica que estan los más de 3000 establecimientos para el procesamiento, este genera un
+#' archivo llamado por ejemplo: "EMMET_PANEL_alertas_nov2022.csv", si el avance es diferente de 100 el nombre será
+#' "EMMET_PANEL_alertas_nov2022_50.csv" indicando que es el 50\% de la base
+#'
+#' @details
+#'
+#' Primero se dividen las variables en capítulo 2 y capítulo 3
+#'
+#' \itemize{
+#'
+#' \item Variables capítulo 2
+#'
+#' -II_PA_PP__NPERS_EP        |   -AJU_II_PA_PP_SUELD_EP
+#'
+#' -II_PA_TD__NPERS_ET        |   -AJU_II_PA_TD_SUELD_ET
+#'
+#' -II_PA_TI__NPERS_ETA       |   -AJU_II_PA_TI_SUELD_ETA
+#'
+#' -II_PA_AP__AAEP            |   -AJU_II_PA_AP_AAS_AP
+#'
+#' -II_PP_PP__NPERS_OP        |   -AJU_II_PP_PP_SUELD_OP
+#'
+#' -II_PP_TD__NPERS_OT        |   -AJU_II_PP_TD_SUELD_OT
+#'
+#' -II_PP_TI__NPERS_OTA       |   -AJU_II_PP_TI_SUELD_OTA
+#'
+#' -II_PP_AP__APEP            |   -AJU_II_PP_AP_AAS_PP
+#'
+#' -AJU_II_HORAS_HORDI_T      |    -AJU_II_HORAS_HEXTR_T
+#'
+#' \item Variables capítulo 3
+#'
+#' -AJU_III_PE_PRODUCCION
+#'
+#' -AJU_III_PE_VENTASIN
+#'
+#' -AJU_III_PE_VENTASEX
+#'
+#' -III_EX__VEXIS
+#'
+#' }
+#' El procedimiento para identificar posibles establecimientos a imputar es:
+#'
+#' 1.	Si la novedad es igual 5 sabemos que el individuo se va a imputar por deuda en todas sus variables o si el valor reportado en la variable de interés es cero y el mes inmediatamente anterior fue diferente de cero también se identifica como imputación deuda
+#'
+#' 2.	Si la novedad es diferente a 5 se observa la variación con respecto al mes anterior; si es menor o igual a 20\% no se imputa.
+#'
+#' 3.	Si la variación es mayor a 20% y su valor es diferente de cero, entonces, primero se observa
+#' si el dato es igual a alguno de los datos reportados por el establecimiento en meses anteriores;
+#' en caso de que esté presente, se decide no imputar, si el dato no estuvo anteriormente, entonces
+#' se procede a identificar si la variable es referente a capítulo 2, si es así,
+#' se realiza una carta de control con los últimos 24 meses, si esta identifica el valor como atípico
+#' se imputa por caso especial; si la variable es referente a capítulo 3, entonces, se realiza una prueba
+#' mezclando el comando \code{\link[tsoutliers]{locate.outliers.iloop}} y la carta de control de 24 meses, el comando locate.outliers.iloop identifica los valores que
+#' pueden ser outliers en series de tiempo, si el valor fue identificado como un valor atípico se imputa
+#' por caso especial, en caso de que no fuera identificado como un valor atípico no se imputa.
+#'
+#' Los límites de la carta control son calculados de la siguiente manera:
+#' \deqn{(\bar{x}−1.96∗𝑆,\bar{x}+1.96∗𝑆)}
+#'
+#' Donde \eqn{\bar{x}} es el promedio de la serie de los últimos 24 meses de la variable y establecimiento de interés y \eqn{S} es la desviación estándar de la serie de los últimos 24 meses de la variable y establecimiento de interés.
+#'
+#' @section Guia para actualizar archivo de alertas:
+#'
+#' Luego de ejecutar esta función se creara un archivo de excel tipo csv, este contiene variables
+#' de identificación de los establecimientos, los valores en cada una de las variables de interes
+#' (capitulo 2 y capitulo 3), y si son posibles casos de imputación, las variables en las que
+#' tengan un valor diferente a continua son los que en la función de imputación pasaran por ese proceso
+#'
+#' Para modificar el archivo debe modifcar el valor en la variable que desee y busque la columna
+#' cuyo nombre es nombrevariable_caso_de_imputacion y modifique el valor por "continua_critica",para
+#' tener registro de que valores se modificaron por una critica, si desea, en la ultima columna
+#' puede realizar un comentario
+#'
+#' Ejemplo, queremos modificar en valor de la producción del establecimiento con ID_numord 23;
+#' por lo tanto primero se busca la fila cuyo valor de id_numord es 23, en la columna "AJU_III_PE_PRODUCCION"
+#' cambiaremos el valor numerico por el valor que deseamos (evite usar decimales), luego proceda
+#' a buscar la columna "AJU_III_PE_PRODUCCION_caso_de_imputacion", ahi modifique el valor de la casilla
+#' por "continua_critica", sin importar si el valor anterior era "continua", "imputacion_deuda"
+#'  o "imputacion_caso_especial".
+#'
+#' @return CSV file
+#'
+#'
+#'
+#' @examples f2_identificacion_alertas(directorio="Documents/DANE/Procesos DIMPE /PilotoEMMET",
+#'                        mes=11,anio=2022,avance=100)
+#'
+f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
+  ### función detección de outliers
+
+  ##Identificar si el archivo existe y preguntarle al usuario si desea sobreescribirlo
+  archivo=paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv")
+  if (file.exists(archivo)) {
+    respuesta <- readline(paste("El archivo", archivo, "ya existe. ¿Desea sobreescribirlo? (S/N): "))
+    if (toupper(respuesta) != "S") {
+      cat("Operación cancelada. El archivo no ha sido sobrescrito.\n")
+      return(invisible())
+    }
+  }
+
+
+  # librerias ---------------------------------------------------------------
+
+  library(dplyr)
+  library(readxl)
+  library(readr)
+  library(data.table)
+  library(forecast)
+  library(tsoutliers)
+  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+
+
+  #cargar la base de datos
+  base_panel <-  fread(paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"), encoding = "Latin-1")
+
+
+  #base_panel[base_panel$ANIO==2023 & base_panel$MES==7 & base_panel$NORDEST==11123,'AJU_SUELD_EP']=1641
+  #convertir la base en data frame y convertir variables de año y mes en numéricas
+  datos<- as.data.frame(base_panel)
+  for (i in variablesinte) {
+
+    datos[,i] <- as.numeric(datos[,i])
+    datos[,i] <- ifelse(is.na(datos[,i]),0,datos[,i])
+  }
+  datos$MES=as.numeric(datos$MES)
+  datos$ANIO=as.numeric(datos$ANIO)
+  # identificación individuos a imputar para las variables del capítulo 2 ----------------------------------------------------
+
+
+  #crear un data frame con solo las variables de interés
+  tra<- datos %>% select(ANIO,MES,NOVEDAD,DEPARTAMENTO,NOMBREMPIO,
+                         NORDEST,NOMBRE_ESTABLECIMIENTO,DOMINIO_39,CLASE_CIIU4,
+                         NPERS_EP,AJU_SUELD_EP,NPERS_ET,
+                         AJU_SUELD_ET,NPERS_ETA,
+                         AJU_SUELD_ETA,NPERS_APREA,AJU_SUELD_APREA,
+                         NPERS_OP,AJU_SUELD_OP,NPERS_OT,
+                         AJU_SUELD_OT,NPERS_OTA,
+                         AJU_SUELD_OTA,NPERS_APREO,AJU_SUELD_APREO,
+                         AJU_HORAS_ORDI,AJU_HORAS_EXT,
+                         AJU_PRODUCCION,AJU_VENTASIN,
+                         AJU_VENTASEX,EXISTENCIAS)
+
+  #Calcular métricas de interés como el promedio, la desviación estándar,etc; en los últimos 2 años
+  tra <- tra  %>% group_by(NORDEST) %>%
+    filter((MES>=mes & ANIO==anio-2) |(ANIO==anio-1)|(MES<=mes & ANIO==anio)) %>%
+    mutate_at(c(variablesinte),.funs=list(rezago1=~lag(.),mes_anio_ant=~ifelse(sum(MES==mes & ANIO==(anio-1))>=1,.[MES==mes & ANIO==anio-1],NA),
+                                          promedio=~mean(.,na.rm = T),devest=~sd(.,na.rm=T),moda_value=~sum(.%in%.[MES==mes & ANIO==anio]),tamano=~n()))#,
+
+
+  #filtrar solo por el periodo actual
+  tra <- tra  %>% filter(MES==mes & ANIO==anio)
+
+  #crear métricas para la carta de control que servirá para definir la regla de identificación de
+  #individuos a imputar
+  for (i in variablesinte) {
+    tra[,paste0(i,"_var_mes_ant")]=(tra[,i]-tra[,paste0(i,"_rezago1")])/tra[,paste0(i,"_rezago1")]
+    tra[,paste0(i,"_var_mes_anio_ant")]=(tra[,i]-tra[,paste0(i,"_mes_anio_ant")])/tra[,paste0(i,"_mes_anio_ant")]
+    tra[tra[,i]!=0 & tra[,paste0(i,"_rezago1")]==0,paste0(i,"_var_mes_ant")] <- 1
+    tra[tra[,i]==0 & tra[,paste0(i,"_rezago1")]==0,paste0(i,"_var_mes_ant")] <- 0
+    tra[,paste0(i,"_Li")]=tra[,paste0(i,"_promedio")]-1.96*tra[,paste0(i,"_devest")]/sqrt(tra[,paste0(i,"_tamano")])
+    tra[,paste0(i,"_Ls")]=tra[,paste0(i,"_promedio")]+1.96*tra[,paste0(i,"_devest")]/sqrt(tra[,paste0(i,"_tamano")])
+
+    tra[,paste0(i,"_caso_de_imputacion")]=ifelse((tra$NOVEDAD==5),"imputacion_deuda",ifelse((tra[,i]==0 & tra[,paste0(i,"_rezago1")]==0),"continua",ifelse((tra[,i]==0 & tra[,paste0(i,"_var_mes_ant")]!=0) | (tra[,i]!=0 & abs(tra[,paste0(i,"_var_mes_ant")])>0.2 &
+                                                                                                                                                                                                                 (tra[,i]<tra[,paste0(i,"_Li")] | tra[,i]>tra[,paste0(i,"_Ls")]) & tra[,paste0(i,"_moda_value")]<=1) ,
+                                                                                                                                                           "imputacion_caso_especial","continua")))
+  }
+
+
+  # identificación individuos a imputar para las variables del capitulo 3 -----------------------------------------------
+
+  #crear un data frame del mes actual
+  novorg=datos %>% filter(ANIO==anio & MES==mes) %>% arrange(NORDEST)
+  #vector con el id del establecimiento del mes actual
+  id_estab=novorg$NORDEST
+  #crea un data frame vacio
+  datafinal=NULL
+
+  for (i in id_estab) {
+    prueba=data.frame()
+    prueba[1,"NORDEST"]=i
+    mmm <- datos %>% filter(NORDEST==i) %>%
+      as.data.frame()
+    for (j in cap3){
+      if ((sum(mmm[!is.na(mmm[,j]),j]==0)/dim(mmm)[1])<0.3){
+
+        prueba[1,paste0(j,"_metodo_de_imputacion")]="tso"
+        fit <- auto.arima(mmm[,j],allowdrift = F,stepwise = T)
+        resid <- residuals(fit)
+        pars <- coefs2poly(fit)
+        order = arimaorder(fit)
+        ts <- locate.outliers.iloop(resid, pars)
+        ts=as.data.frame(ts)
+        prueba[1,paste0(j,"_regla_de_imputacion")]=ifelse(sum(ts$ind==which(mmm$MES==mes & mmm$ANIO==anio))>=1,1,0)
+
+      }else{
+        mmm2 <- mmm %>% filter(NORDEST==i) %>% filter((MES>=mes & ANIO==anio-2) |(ANIO==anio-1)|(MES<=mes & ANIO==anio)) %>%
+          as.data.frame()
+        prueba[1,paste0(j,"_metodo_de_imputacion")]="IC"
+        LI <- mean(mmm2[,j],na.rm=T)-1.96*sd(mmm2[,j],na.rm=T)/sqrt(nrow(mmm2))
+        LS <- mean(mmm2[,j],na.rm=T)+1.96*sd(mmm2[,j],na.rm=T)/sqrt(nrow(mmm2))
+
+        prueba[1,paste0(j,"_regla_de_imputacion")]=ifelse((mmm2[which(mmm2$MES==mes & mmm2$ANIO==anio),j]<LI |
+                                                             mmm2[which(mmm2$MES==mes & mmm2$ANIO==anio),j]>LS),1,0)
+      }}
+
+    datafinal=rbind(datafinal,prueba)
+  }
+  #crea un solo dataframe con los resultados de la función que identifica datos atipicos
+  traic=left_join(tra,datafinal,by= "NORDEST")
+
+  #crear la regla de indentificación de individuos a imputar para las variables del capitulo 3
+  for (i in cap3) {
+    traic[,paste0(i,"_caso_de_imputacion")]=ifelse((traic$NOVEDAD==5),"imputacion_deuda",ifelse((traic[,i]==0 & traic[,paste0(i,"_rezago1")]==0),"continua",ifelse((traic[,i]==0 & traic[,paste0(i,"_var_mes_ant")]!=0) | (traic[,paste0(i,"_regla_de_imputacion")]==1  & traic[,paste0(i,"_moda_value")]<=1 & traic[,i]!=0 & abs(traic[,paste0(i,"_var_mes_ant")])>0.2) ,"imputacion_caso_especial","continua")))
+  }
+  #crear un data frame final con las variables que necesitaremos para el proceso de imputación
+  final <- traic %>%
+    select(ANIO,MES,NOVEDAD,DEPARTAMENTO,NOMBREMPIO,NORDEST,NOMBRE_ESTABLECIMIENTO,
+           DOMINIO_39,CLASE_CIIU4,NPERS_EP,AJU_SUELD_EP,
+           NPERS_ET,AJU_SUELD_ET,NPERS_ETA,AJU_SUELD_ETA,NPERS_APREA,AJU_SUELD_APREA,
+           NPERS_OP,AJU_SUELD_OP,NPERS_OT,AJU_SUELD_OT,NPERS_OTA,AJU_SUELD_OTA,
+           NPERS_APREO,AJU_SUELD_APREO,AJU_HORAS_ORDI,AJU_HORAS_EXT,
+           AJU_PRODUCCION,AJU_VENTASIN,AJU_VENTASEX,EXISTENCIAS,ends_with("caso_de_imputacion")) %>% arrange(NORDEST) %>% as.data.frame()
+
+  final <- final %>%
+    mutate(
+      TOTAL_VENTAS=(AJU_VENTASIN+AJU_VENTASEX),
+      TOTAL_HORAS= (AJU_HORAS_ORDI+AJU_HORAS_EXT),
+      TOT_PERS=(NPERS_EP+NPERS_ET+NPERS_ETA+
+                  NPERS_APREA+NPERS_OP+NPERS_OT+
+                  NPERS_OTA+NPERS_APREO)
+    )
+
+
+  # Exportar data frame con la identificación de posibles casos de imputación -------------------------------
+if(avance==100){
+  write.csv(final,paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
+}else{
+  write.csv(final,paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".csv"),row.names=F,fileEncoding = "latin1")
+}
+}
+
