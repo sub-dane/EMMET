@@ -36,7 +36,7 @@
 f1_integracion <- function(directorio,
                         mes,
                         anio){
-  error_dire <- "El valor de 'directorio' debe ser proporcionado.Ej: \"Documents/DANE/Procesos DIMPE /PilotoEMMET\"."
+  error_dire <- "El valor de 'directorio' debe ser proporcionado.Ej: \"Documents/DANE/Procesos DIMPE/PilotoEMMET\"."
 
   if(missingArg(directorio)) stop(error_dire,call.=FALSE)
 

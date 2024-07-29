@@ -293,15 +293,25 @@ f5_anacional <- function(directorio,
   data <- read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
   indices_14<- read_xlsx(paste0(directorio,"/data/Indices_2014.xlsx"))
   indices_01<- read_xlsx(paste0(directorio,"/data/Indices_2001.xlsx"))
-
-
+  
+  
   # Archivos de entrada y salida --------------------------------------------
-
-  formato<-paste0(directorio,"/data/anexos_nacional_emmet_",meses[mes],"_formato.xlsx")
-  Salida<-paste0(directorio,"/results/S5_anexos/anexos_nacional_emmet_",mes,".xlsx")
-
+  
+  formato<-paste0(directorio,"/data/anexos_nacional_emmet_formato.xlsx")
+  Salida<-paste0(directorio,"/results/S5_anexos/anexos_nacional_emmet_",meses[mes],"_",anio,".xlsx")
+  
+  
+  temp <- unlist(str_split(Salida, pattern = "/"))
+  Salida2 <- paste(temp[-length(temp)], collapse="/")
+  temp2 <- unlist(str_split(formato, pattern = "/"))
+  temp2 <- temp2[length(temp2)]
+  temp <- temp[length(temp)]
+  file.copy(formato,Salida2)
+  file.rename(file.path(Salida2,temp2),file.path(Salida2,temp))
+  
+  
   # Limpieza de nombres de variable -----------------------------------------
-
+  
   colnames_format <- function(base){
     colnames(base) <- toupper(colnames(base))
     colnames(base) <- gsub(" ","",colnames(base))
@@ -312,34 +322,136 @@ f5_anacional <- function(directorio,
   colnames(data) <- colnames_format(data)
   #colnames(data2) <- colnames_format(data2)
   data <-  data %>% mutate_at(vars(contains("OBSE")),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
-
+  
   colnames(indices_14)<-colnames_format(indices_14)
   colnames(indices_01)<-colnames_format(indices_01)
-
+  
+  
+  
   # Se carga el formato de excel --------------------------------------------
-
-  wb <- loadWorkbook(formato)
-  sheets <- getSheets(wb)
-  #names(sheets)
-
-
+  
+  wb <- openxlsx::loadWorkbook(Salida)
+  sheets <- getSheetNames(Salida)
+  #names(wb)
+  
+  #Estilos
+  #num_formato <- createStyle(numFmt = "0.0")
+  #boldStyle <- createStyle(textDecoration = "bold")
+  
+  
+  # Formatos ----------------------------------------------------------------
+  
+  
+  colgr <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    fgFill = "#F2F2F2",
+    bgFill = "#FFFFFF",
+    halign = "center",
+    valign = "center",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  
+  colbl <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    fgFill = "#FFFFFF",
+    halign = "center",
+    valign = "center",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  ultbl <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Bottom: thin",
+    borderColour = "#000000",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF",
+    halign = "center",
+    valign = "center",
+    wrapText = TRUE
+  )
+  
+  
+  ultcgr <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Right",
+    borderColour = "#000000",
+    halign = "center",
+    valign = "center",
+    fgFill = "#F2F2F2",
+    bgFill = "#FFFFFF",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  
+  ultcbl <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Right",
+    borderColour = "#000000",
+    halign = "center",
+    valign = "center",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  rowbl <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Top",
+    borderColour = "#000000",
+    halign = "left",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  ultrbl <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Bottom: thin",
+    borderColour = "#000000",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF",
+    numFmt = "0.00",
+    wrapText = TRUE
+  )
+  
+  
   # Funcion -----------------------------------------------------------------
-
-
+  
+  
   #Funcion para crear las variables produccion_total, ventas_total y personal_total
-
+  
   contr_sum_an <- function(tabla){
     tabla1 <- tabla %>% summarise(produccion_total = sum(PRODUCCIONREALPOND),
                                   ventas_total=sum(VENTASREALESPOND),
                                   personal_total=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC))
-
+    
     return(tabla1)
   }
-
-
+  
+  
   #Funcion para crear las variavles pro,vent,per de acuerdo al periodo que se
   #esté manejando
-
+  
   contr_fin <- function(periodo,tabla){
     if(periodo==6){
       contribucion <- tabla %>%
@@ -351,7 +463,7 @@ f5_anacional <- function(directorio,
                   ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
                   personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
         arrange(produccion)
-
+      
     }else{
       contribucion <- tabla %>%
         summarise(prod = sum(PRODUCCIONREALPOND),
@@ -363,11 +475,11 @@ f5_anacional <- function(directorio,
                   personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
         arrange(produccion)
     }
-
+    
     return(contribucion)
   }
-
-
+  
+  
   #Funcion para realizar los pivotes en las tablas de acuerdo al periodo que
   #se esté trabajando
   tabla_pivot <- function(periodo,tabla){
@@ -382,8 +494,8 @@ f5_anacional <- function(directorio,
     }
     return(tabla1)
   }
-
-
+  
+  
   #Funcion para crear las nuevas variables concatenando columnas específicas del
   # data frame, según el periodo que se esté manejando
   tabla_paste_an <- function(periodo,base){
@@ -414,10 +526,10 @@ f5_anacional <- function(directorio,
       base[paste0("varventas_",anio)]<- (base[paste0("ventas_",anio)]-base[paste0("ventas_",anio-1)])/base[paste0("ventas_",anio-1)]
       base[paste0("varpersonas_",anio)] <- (base[paste0("personas_",anio)]-base[paste0("personas_",anio-1)])/base[paste0("personas_",anio-1)]
     }
-
+    
     return(base)
   }
-
+  
   #Funcion para crear variables en las tablas finales,
   #según el periodo que se esté manejando
   tabla_summarise <- function(periodo,tabla){
@@ -436,7 +548,7 @@ f5_anacional <- function(directorio,
                   sueltotemp=sum(SUELDOSADMONREAL),
                   sueltotope=sum(SUELDOSPRODUCREAL),
                   horas=sum(TOTALHORAS))
-
+      
     }else{
       tabla1 <- tabla  %>%
         summarise(produccionNom=sum(PRODUCCIONNOMPOND),
@@ -446,33 +558,33 @@ f5_anacional <- function(directorio,
                   personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC))
     }
     return(tabla1)
-
+    
   }
-
+  
   tabla_acople<-function(tabla){
     tabla$ANIO <- sapply(strsplit(as.character(tabla$variables), "_"), `[`, 2)
     tabla$variables <- sapply(strsplit(as.character(tabla$variables), "_"), `[`, 1)
     tabla <- tabla %>% filter(gsub("var","",variables)!=variables )
-
+    
     tabla <- tabla %>% pivot_wider(names_from = variables,values_from = value)
-
+    
     return(tabla)
   }
-
+  
   # data$PRODUCCIONREALPOND<- round(data$PRODUCCIONREALPOND,2)
   # data$VENTASREALESPOND <- round(data$VENTASREALESPOND,2)
-
+  
   # 1. Var y cont_Anual -----------------------------------------------------
-
+  
   #Calculo de la contribucion total
   contribucion_total <-data %>%
     filter(MES==mes & ANIO%in%c(anio-1)) %>%
     summarise(produccion_total = sum(PRODUCCIONREALPOND),
               ventas_total=sum(VENTASREALESPOND),
               personal_total=sum(TOTPERS))
-
+  
   #contribucion_total <- contr_sum_an(contribucion_total)
-
+  
   #Calculo de la contribucion por meses
   contribucion <- data %>%
     filter(MES==mes & ANIO%in%c(anio,anio-1)) %>%
@@ -486,9 +598,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(1,contribucion)
-
+  
   #Calculo de la variación por dominos
   tabla1 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%mes) %>%
@@ -499,47 +611,47 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
               personas=sum(TOTPERS))
-
+  
   #tabla1 <- tabla_summarise(1,tabla1)
-
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla1 <- tabla_pivot(1,tabla1)
-
+  
   tabla1[paste0("varprodnom_",anio)] <- (tabla1[paste0("produccionNom_",anio)]-tabla1[paste0("produccionNom_",anio-1)])/tabla1[paste0("produccionNom_",anio-1)]
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventasnom_",anio)]<- (tabla1[paste0("ventasNom_",anio)]-tabla1[paste0("ventasNom_",anio-1)])/tabla1[paste0("ventasNom_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
-
+  
   #tabla1 <- tabla_paste_an(1,tabla1)
-
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
+  
+  
   #Empalme de la variacion y contribucion anual por dominios
   tabla1 <- inner_join(x=tabla1,y=contribucion,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
                       "varprod","produccion","varventasnom","varventas",
                       "ventas","varpersonas","personal")]
-
+  
   for( i in c("varprodnom","varprod","produccion","varventasnom",
               "varventas","ventas","varpersonas","personal")){
     tabla1[,i] <-  tabla1[,i]*100
   }
   tabla1 <- tabla1 %>% arrange(DOMINIO_39)
-
+  
   #Total Industria
-
+  
   #Calculo de la contribucion por meses
   contribucion1 <- data %>%
     filter(MES==mes & ANIO%in%c(anio,anio-1)) %>%
@@ -556,9 +668,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(1,contribucion)
-
+  
   #Calculo de la variación por dominos
   tabla2 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%mes) %>%
@@ -569,65 +681,66 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
               personas=sum(TOTPERS))
-
+  
   #tabla1 <- tabla_summarise(1,tabla1)
-
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla1 <- tabla_pivot(1,tabla1)
-
+  
   tabla2[paste0("varprodnom_",anio)] <- (tabla2[paste0("produccionNom_",anio)]-tabla2[paste0("produccionNom_",anio-1)])/tabla2[paste0("produccionNom_",anio-1)]
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventasnom_",anio)]<- (tabla2[paste0("ventasNom_",anio)]-tabla2[paste0("ventasNom_",anio-1)])/tabla2[paste0("ventasNom_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
-
+  
   #tabla1 <- tabla_paste_an(1,tabla1)
-
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
+  
   tabla2["DOMINIO39_DESCRIP"] <- ""
   tabla2["DOMINIO_39"] <- "Total Industia"
-
+  
   #Empalme de la variacion y contribucion anual por dominios
   tabla2 <- inner_join(x=tabla2,y=contribucion1,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
                       "varprod","produccion","varventasnom","varventas",
                       "ventas","varpersonas","personal")]
-
+  
   for( i in c("varprodnom","varprod","produccion","varventasnom",
               "varventas","ventas","varpersonas","personal")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
+  
   tabla1 <- tabla1 %>% arrange(DOMINIO_39)
   tabla1 <- rbind(tabla2,tabla1)
-
+  
   #Exportar
-
-  sheet <- sheets[[2]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 13, startColumn = 1)
-
+  
+  sheet <- sheets[2]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0(meses_enu[mes],"(",anio,"/",anio-1,")p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 55, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  
   # 2. Var Anual_Emp_Sueldos_Horas  -----------------------------------------
-
+  
   #Calculo de la variación por dominos
   tabla1 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%mes) %>%
@@ -646,20 +759,20 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
-
+  
+  
   #tabla1 <- tabla_summarise(2,tabla1)
-
-
+  
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccion","ventas","personas","empleo","emptem",
                                 "empleados","operarios","sueldos","suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
-
+  
+  
   #tabla1 <- tabla_paste_an(2,tabla1)
-
+  
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
@@ -673,32 +786,32 @@ f5_anacional <- function(directorio,
   tabla1[paste0("varsueltotemp_",anio)] <- (tabla1[paste0("sueltotemp_",anio)]-tabla1[paste0("sueltotemp_",anio-1)])/tabla1[paste0("sueltotemp_",anio-1)]
   tabla1[paste0("varsueltotope_",anio)] <- (tabla1[paste0("sueltotope_",anio)]-tabla1[paste0("sueltotope_",anio-1)])/tabla1[paste0("sueltotope_",anio-1)]
   tabla1[paste0("varhoras_",anio)] <- (tabla1[paste0("horas_",anio)]-tabla1[paste0("horas_",anio-1)])/tabla1[paste0("horas_",anio-1)]
-
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:3)],names_to = "variables",values_to = "value" )
-
-
+  
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
+  
+  
   #Empalme de la variacion y contribucion anual por dominios
   tabla1 <- inner_join(x=tabla1,y=contribucion,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla1[,i] <-  tabla1[,i]*100
   }
-
+  
   #Totales Industria
-
+  
   #Calculo de la variación por dominos
   tabla2 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%mes) %>%
@@ -717,20 +830,20 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
-
+  
+  
   #tabla1 <- tabla_summarise(2,tabla1)
-
-
+  
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccion","ventas","personas","empleo","emptem",
                                 "empleados","operarios","sueldos","suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
-
+  
+  
   #tabla1 <- tabla_paste_an(2,tabla1)
-
+  
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
@@ -744,62 +857,63 @@ f5_anacional <- function(directorio,
   tabla2[paste0("varsueltotemp_",anio)] <- (tabla2[paste0("sueltotemp_",anio)]-tabla2[paste0("sueltotemp_",anio-1)])/tabla2[paste0("sueltotemp_",anio-1)]
   tabla2[paste0("varsueltotope_",anio)] <- (tabla2[paste0("sueltotope_",anio)]-tabla2[paste0("sueltotope_",anio-1)])/tabla2[paste0("sueltotope_",anio-1)]
   tabla2[paste0("varhoras_",anio)] <- (tabla2[paste0("horas_",anio)]-tabla2[paste0("horas_",anio-1)])/tabla2[paste0("horas_",anio-1)]
-
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:3)],names_to = "variables",values_to = "value" )
-
-
+  
+  
   #tabla2 <- tabla_acople(tabla2)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
+  
   tabla2["DOMINIO39_DESCRIP"] <- ""
   tabla2["DOMINIO_39"] <- "Total Industia"
-
+  
   #Empalme de la variacion y contribucion anual por dominios
   tabla2 <- inner_join(x=tabla2,y=contribucion1,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
+  
   tabla1 <- tabla1 %>%
     arrange(DOMINIO_39)
-
+  
   tabla1 <- rbind(tabla2,tabla1)
-
+  
   #Exportar
-
-  sheet <- sheets[[3]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 14, startColumn = 1)
-
+  
+  sheet <- sheets[3]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0(meses_enu[mes],"(",anio,"/",anio-1,")p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,data.frame(Enunciado),startRow = 9, startCol = 1,
+                      colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,data.frame(Enunciado),startRow = 55, startCol = 1,
+                      colNames=FALSE, rowNames=FALSE)
+  
+  
   # 3. Var y cont_anio corrido -----------------------------------------------
-
+  
   #Calculo de la contribucion total
   contribucion_total <- data %>%
     filter(MES%in%c(1:mes) & ANIO%in%c(anio-1)) %>%
     summarise(produccion_total = sum(PRODUCCIONREALPOND),
               ventas_total=sum(VENTASREALESPOND),
               personal_total=sum(TOTPERS))
-
+  
   #contribucion_total <- contr_sum_an(contribucion_total)
-
+  
   #Calculo de la contribucion mensual por dominio
   contribucion <- data %>%
     filter(MES%in%c(1:mes) & ANIO%in%c(anio,anio-1)) %>%
@@ -813,9 +927,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(3,contribucion)
-
+  
   #Calculo de la variacion por dominio
   tabla1 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%c(1:mes)) %>%
@@ -826,48 +940,48 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC),
               personas=sum(TOTPERS))
-
+  
   #tabla1 <- tabla_summarise(3,tabla1)
-
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla1 <- tabla_pivot(3,tabla1)
-
+  
   #tabla1 <- tabla_paste_an(3,tabla1)
-
+  
   tabla1[paste0("varprodnom_",anio)] <- (tabla1[paste0("produccionNom_",anio)]-tabla1[paste0("produccionNom_",anio-1)])/tabla1[paste0("produccionNom_",anio-1)]
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventasnom_",anio)]<- (tabla1[paste0("ventasNom_",anio)]-tabla1[paste0("ventasNom_",anio-1)])/tabla1[paste0("ventasNom_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
-
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:2)],names_to = "variables",values_to = "value" )
-
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
-
+  
+  
+  
   #Empalme de la contribucion y variacion por dominio
   tabla1 <- inner_join(x=tabla1,y=contribucion,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom","varprod","produccion",
                       "varventasnom","varventas","ventas","varpersonas","personal")]
-
+  
   for( i in c("varprodnom","varprod","produccion",
               "varventasnom","varventas","ventas","varpersonas","personal")){
     tabla1[,i] <-  tabla1[,i]*100
   }
-
+  
   #Total Industria
-
+  
   #contribucion_total <- contr_sum_an(contribucion_total)
-
+  
   #Calculo de la contribucion mensual por dominio
   contribucion1 <- data %>%
     filter(MES%in%c(1:mes) & ANIO%in%c(anio,anio-1)) %>%
@@ -884,9 +998,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(3,contribucion)
-
+  
   #Calculo de la variacion por dominio
   tabla2 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%c(1:mes)) %>%
@@ -897,66 +1011,67 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC),
               personas=sum(TOTPERS))
-
+  
   #tabla2 <- tabla_summarise(3,tabla2)
-
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla2 <- tabla_pivot(3,tabla2)
-
+  
   #tabla2 <- tabla_paste_an(3,tabla2)
-
+  
   tabla2[paste0("varprodnom_",anio)] <- (tabla2[paste0("produccionNom_",anio)]-tabla2[paste0("produccionNom_",anio-1)])/tabla2[paste0("produccionNom_",anio-1)]
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventasnom_",anio)]<- (tabla2[paste0("ventasNom_",anio)]-tabla2[paste0("ventasNom_",anio-1)])/tabla2[paste0("ventasNom_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
-
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:2)],names_to = "variables",values_to = "value" )
-
+  
   #tabla2 <- tabla_acople(tabla2)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
+  
   tabla2["DOMINIO_39"] <- "Total Industria"
   tabla2["DOMINIO39_DESCRIP"] <- ""
-
+  
   #Empalme de la contribucion y variacion por dominio
   tabla2 <- inner_join(x=tabla2,y=contribucion1,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom","varprod","produccion",
                       "varventasnom","varventas","ventas","varpersonas","personal")]
-
+  
   for( i in c("varprodnom","varprod","produccion",
               "varventasnom","varventas","ventas","varpersonas","personal")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
+  
   tabla1 <- tabla1 %>%
     arrange(DOMINIO_39)
-
+  
   tabla1 <- rbind(tabla2,tabla1)
-
+  
   #Exportar
-
-  sheet <- sheets[[5]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 13, startColumn = 1)
-
+  
+  sheet <- sheets[5]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero - ",meses_enu[mes],"(",anio,"/",anio-1,")p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 55, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  
   # 4. Var anio corr Emp_Sueldos_Hor -----------------------------------------
-
+  
   #Calculo de la variación por dominos
   tabla1 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%c(1:mes)) %>%
@@ -974,19 +1089,19 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
+  
   #tabla1 <- tabla_summarise(4,tabla1)
-
-
+  
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccion","ventas","personas","empleo",
                                 "emptem","empleados","operarios","sueldos",
                                 "suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
+  
   #tabla1 <- tabla_paste_an(4,tabla1)
-
+  
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
@@ -1000,30 +1115,30 @@ f5_anacional <- function(directorio,
   tabla1[paste0("varsueltotemp_",anio)] <- (tabla1[paste0("sueltotemp_",anio)]-tabla1[paste0("sueltotemp_",anio-1)])/tabla1[paste0("sueltotemp_",anio-1)]
   tabla1[paste0("varsueltotope_",anio)] <- (tabla1[paste0("sueltotope_",anio)]-tabla1[paste0("sueltotope_",anio-1)])/tabla1[paste0("sueltotope_",anio-1)]
   tabla1[paste0("varhoras_",anio)] <- (tabla1[paste0("horas_",anio)]-tabla1[paste0("horas_",anio-1)])/tabla1[paste0("horas_",anio-1)]
-
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
+  
+  
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla1[,i] <-  tabla1[,i]*100
   }
-
-
+  
+  
   #Total Industria
-
+  
   #Calculo de la variación por dominos
   tabla2 <- data %>%
     filter(ANIO%in%c(anio,anio-1) & MES%in%c(1:mes)) %>%
@@ -1041,19 +1156,19 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
+  
   #tabla2 <- tabla_summarise(4,tabla2)
-
-
+  
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO"),
                 values_from = c("produccion","ventas","personas","empleo",
                                 "emptem","empleados","operarios","sueldos",
                                 "suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
+  
   #tabla2 <- tabla_paste_an(4,tabla2)
-
+  
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
@@ -1067,64 +1182,63 @@ f5_anacional <- function(directorio,
   tabla2[paste0("varsueltotemp_",anio)] <- (tabla2[paste0("sueltotemp_",anio)]-tabla2[paste0("sueltotemp_",anio-1)])/tabla2[paste0("sueltotemp_",anio-1)]
   tabla2[paste0("varsueltotope_",anio)] <- (tabla2[paste0("sueltotope_",anio)]-tabla2[paste0("sueltotope_",anio-1)])/tabla2[paste0("sueltotope_",anio-1)]
   tabla2[paste0("varhoras_",anio)] <- (tabla2[paste0("horas_",anio)]-tabla2[paste0("horas_",anio-1)])/tabla2[paste0("horas_",anio-1)]
-
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla2 <- tabla_acople(tabla2)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
+  
   tabla2["DOMINIO_39"] <- "Total Industria"
   tabla2["DOMINIO39_DESCRIP"] <- ""
-
+  
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
+  
   tabla1 <- tabla1 %>% arrange(DOMINIO_39)
-
+  
   tabla1 <- rbind(tabla2,tabla1)
-
-
+  
+  
   #Exportar
-
-  sheet <- sheets[[6]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 14, startColumn = 1)
-
-
+  
+  sheet <- sheets[6]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero - ",meses_enu[mes]," (",anio,"/",anio-1,")p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 55, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   # 5. Var y cont_doce meses ------------------------------------------------
-
+  
   #Creacion de la variable para anio corrido
   data$ANIO2 <- as.numeric(ifelse(data$MES%in%c((mes+1):12),data$ANIO+1,data$ANIO))
-
-
+  
+  
   #Calculo de la contribucion total
   contribucion_total <- data %>%
     filter(ANIO2%in%(anio-1)) %>%
     summarise(produccion_total = sum(PRODUCCIONREALPOND),
               ventas_total=sum(VENTASREALESPOND),
               personal_total=sum(TOTPERS))
-
+  
   #contribucion_total <- contr_sum_an(contribucion_total)
-
+  
   #Calculo de la contribucion mensual por dominio
   contribucion <- data %>%
     filter(ANIO2%in%c(anio-1,anio)) %>%
@@ -1138,9 +1252,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(5,contribucion)
-
+  
   #Calculo de la variación por dominio
   tabla1 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
@@ -1151,47 +1265,47 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
               personas=sum(TOTPERS))
-
+  
   #tabla1 <- tabla_summarise(5,tabla1)
-
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO2"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla1 <- tabla_pivot(5,tabla1)
-
+  
   #tabla1 <- tabla_paste_an(5,tabla1)
-
+  
   tabla1[paste0("varprodnom_",anio)] <- (tabla1[paste0("produccionNom_",anio)]-tabla1[paste0("produccionNom_",anio-1)])/tabla1[paste0("produccionNom_",anio-1)]
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventasnom_",anio)]<- (tabla1[paste0("ventasNom_",anio)]-tabla1[paste0("ventasNom_",anio-1)])/tabla1[paste0("ventasNom_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
-
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
+  
+  
   #Empalme de la contribucion y la variacion
   tabla1 <- inner_join(x=tabla1,y=contribucion,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
                       "varprod","produccion","varventasnom","varventas","ventas",
                       "varpersonas","personal")]
-
+  
   for( i in c("varprodnom",
               "varprod","produccion","varventasnom","varventas","ventas",
               "varpersonas","personal")){
     tabla1[,i] <-  tabla1[,i]*100
   }
-
+  
   #Total Industria
-
+  
   #Calculo de la contribucion mensual por dominio
   contribucion1 <- data %>%
     filter(ANIO2%in%c(anio-1,anio)) %>%
@@ -1208,9 +1322,9 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
+  
   #contribucion <- contr_fin(5,contribucion)
-
+  
   #Calculo de la variación por dominio
   tabla2 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
@@ -1221,84 +1335,84 @@ f5_anacional <- function(directorio,
               ventas = sum(VENTASREALESPOND),
               #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
               personas=sum(TOTPERS))
-
+  
   #tabla2 <- tabla_summarise(5,tabla2)
-
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO2"),
                 values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-
+  
+  
   #tabla2 <- tabla_pivot(5,tabla2)
-
+  
   #tabla2 <- tabla_paste_an(5,tabla2)
-
+  
   tabla2[paste0("varprodnom_",anio)] <- (tabla2[paste0("produccionNom_",anio)]-tabla2[paste0("produccionNom_",anio-1)])/tabla2[paste0("produccionNom_",anio-1)]
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventasnom_",anio)]<- (tabla2[paste0("ventasNom_",anio)]-tabla2[paste0("ventasNom_",anio-1)])/tabla2[paste0("ventasNom_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
-
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:3)],names_to = "variables",values_to = "value" )
-
+  
   #tabla2 <- tabla_acople(tabla2)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
-
+  
+  
   tabla2["DOMINIO_39"] <- "Total Industria"
   tabla2["DOMINIO39_DESCRIP"] <- ""
-
+  
   #Empalme de la contribucion y la variacion
   tabla2 <- inner_join(x=tabla2,y=contribucion1,by=c("DOMINIO_39","DOMINIO39_DESCRIP"))
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
                       "varprod","produccion","varventasnom","varventas","ventas",
                       "varpersonas","personal")]
-
+  
   for( i in c("varprodnom",
               "varprod","produccion","varventasnom","varventas","ventas",
               "varpersonas","personal")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
-
+  
+  
   tabla1 <- tabla1 %>% arrange(DOMINIO_39)
   tabla1 <- rbind(tabla2,tabla1)
-
-
-
+  
+  
+  
   #Exportar
-
-  sheet <- sheets[[7]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 13, startColumn = 1)
-
-
-
+  
+  sheet <- sheets[7]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
+  
   Enunciado<-paste0(meses_enu[mes+1]," ",anio-1,"-",meses_enu[mes]," ",anio,"/",meses_enu[mes+1]," ",anio-2,"-",meses_enu[mes]," ",anio-1,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 55, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  
   # 6. Var doce meses Emp_Sueldos_H -----------------------------------------
-
+  
   #Creacion de la variable para anio corrido
   data$ANIO2 <- as.numeric(ifelse(data$MES%in%c((mes+1):12),data$ANIO+1,data$ANIO))
-
+  
   #Calculo de la contribucion total
   contribucion_total <- data %>%
     filter(ANIO2%in%(anio-1)) %>%
     summarise(produccion_total = sum(PRODUCCIONREALPOND),
               ventas_total=sum(VENTASREALESPOND),
               personal_total=sum(TOTPERS))
-
+  
   #contribucion_total <- contr_sum_an(contribucion_total)
-
+  
   #Calculo de la contribucion mensual por departamento
   contribucion <- data %>%
     filter(ANIO2%in%c(anio-1,anio)) %>%
@@ -1312,10 +1426,10 @@ f5_anacional <- function(directorio,
               ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
               personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
     arrange(produccion)
-
-
+  
+  
   #contribucion <- contr_fin(6,contribucion)
-
+  
   #Calculo de la variacion
   tabla1 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
@@ -1334,29 +1448,29 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
+  
   #tabla1 <- tabla_summarise(6,tabla1)
-
+  
   tabla1_6 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
     group_by(ANIO2,DOMINIO_39,DOMINIO39_DESCRIP) %>%
     summarise(produccionNom=sum(PRODUCCIONNOMPOND),
               ventasNom = sum(VENTASNOMINPOND))
-
+  
   #Empalme de la variacion y contribucion
   tabla1 <- tabla1 %>% left_join(tabla1_6,by=c("ANIO2"="ANIO2","DOMINIO_39"="DOMINIO_39",
                                                "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
-
+  
   tabla1 <- tabla1 %>%
     pivot_wider(names_from = c("ANIO2"),
                 values_from = c("produccionNom","produccion","ventas","ventasNom",
                                 "personas","empleo","emptem","empleados","operarios",
                                 "sueldos","suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
-
+  
+  
   #tabla1 <- tabla_paste_an(6,tabla1)
-
+  
   tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",anio-1)])/tabla1[paste0("produccion_",anio-1)]
   tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",anio-1)])/tabla1[paste0("ventas_",anio-1)]
   tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",anio-1)])/tabla1[paste0("personas_",anio-1)]
@@ -1370,37 +1484,37 @@ f5_anacional <- function(directorio,
   tabla1[paste0("varsueltotemp_",anio)] <- (tabla1[paste0("sueltotemp_",anio)]-tabla1[paste0("sueltotemp_",anio-1)])/tabla1[paste0("sueltotemp_",anio-1)]
   tabla1[paste0("varsueltotope_",anio)] <- (tabla1[paste0("sueltotope_",anio)]-tabla1[paste0("sueltotope_",anio-1)])/tabla1[paste0("sueltotope_",anio-1)]
   tabla1[paste0("varhoras_",anio)] <- (tabla1[paste0("horas_",anio)]-tabla1[paste0("horas_",anio-1)])/tabla1[paste0("horas_",anio-1)]
-
-
-
+  
+  
+  
   tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:2)],names_to = "variables",values_to = "value" )
-
-
+  
+  
   #tabla1 <- tabla_acople(tabla1)
   tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
   tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
   tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
   tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
-
-
+  
+  
+  
+  
   tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla1[,i] <-  tabla1[,i]*100
   }
-
-
+  
+  
   #Total Industria
-
+  
   #contribucion <- contr_fin(6,contribucion)
-
+  
   #Calculo de la variacion
   tabla2 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
@@ -1419,34 +1533,34 @@ f5_anacional <- function(directorio,
               sueltotemp=sum(SUELDOSADMONREAL),
               sueltotope=sum(SUELDOSPRODUCREAL),
               horas=sum(TOTALHORAS))
-
+  
   #tabla2 <- tabla_summarise(6,tabla2)
-
+  
   tabla2_6 <- data %>%
     filter(ANIO2%in%c(anio,anio-1)) %>%
     group_by(ANIO2) %>%
     summarise(produccionNom=sum(PRODUCCIONNOMPOND),
               ventasNom = sum(VENTASNOMINPOND))
-
+  
   tabla2["DOMINIO_39"] <- "Total Industria"
   tabla2["DOMINIO39_DESCRIP"] <- ""
   tabla2_6["DOMINIO_39"] <- "Total Industria"
   tabla2_6["DOMINIO39_DESCRIP"] <- ""
-
+  
   #Empalme de la variacion y contribucion
   tabla2 <- tabla2 %>% left_join(tabla2_6,by=c("ANIO2"="ANIO2","DOMINIO_39"="DOMINIO_39",
                                                "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
-
+  
   tabla2 <- tabla2 %>%
     pivot_wider(names_from = c("ANIO2"),
                 values_from = c("produccionNom","produccion","ventas","ventasNom",
                                 "personas","empleo","emptem","empleados","operarios",
                                 "sueldos","suelemplper","suelempltem","sueltotemp",
                                 "sueltotope","horas"))
-
-
+  
+  
   #tabla2 <- tabla_paste_an(6,tabla2)
-
+  
   tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",anio-1)])/tabla2[paste0("produccion_",anio-1)]
   tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",anio-1)])/tabla2[paste0("ventas_",anio-1)]
   tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",anio-1)])/tabla2[paste0("personas_",anio-1)]
@@ -1460,52 +1574,51 @@ f5_anacional <- function(directorio,
   tabla2[paste0("varsueltotemp_",anio)] <- (tabla2[paste0("sueltotemp_",anio)]-tabla2[paste0("sueltotemp_",anio-1)])/tabla2[paste0("sueltotemp_",anio-1)]
   tabla2[paste0("varsueltotope_",anio)] <- (tabla2[paste0("sueltotope_",anio)]-tabla2[paste0("sueltotope_",anio-1)])/tabla2[paste0("sueltotope_",anio-1)]
   tabla2[paste0("varhoras_",anio)] <- (tabla2[paste0("horas_",anio)]-tabla2[paste0("horas_",anio-1)])/tabla2[paste0("horas_",anio-1)]
-
-
-
+  
+  
+  
   tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:2)],names_to = "variables",values_to = "value" )
-
-
+  
+  
   #tabla2 <- tabla_acople(tabla2)
   tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
   tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
   tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
   tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
-
-
-
+  
+  
+  
+  
   tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprod",
                       "varventas","varpersonas","varempleo","varemptem",
                       "varempleados","varoperarios","varsueldos","varsuelemplper",
                       "varsuelempltem","varsueltotemp","varsueltotope","varhoras")]
-
+  
   for( i in c("varprod","varventas","varpersonas","varempleo","varemptem",
               "varempleados","varoperarios","varsueldos","varsuelemplper",
               "varsuelempltem","varsueltotemp","varsueltotope","varhoras")){
     tabla2[,i] <-  tabla2[,i]*100
   }
-
+  
   tabla1 <- tabla1 %>% arrange(DOMINIO_39)
   tabla1 <- rbind(tabla2,tabla1)
-
+  
   #Exportar
-
-  sheet <- sheets[[8]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 14, startColumn = 1)
-
-
+  
+  sheet <- sheets[8]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
+                      startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0(meses_enu[mes+1]," ",anio-1,"-",meses_enu[mes]," ",anio,"/",meses_enu[mes+1]," ",anio-2,"-",meses_enu[mes]," ",anio-1,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 9, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 55, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 55, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   # 7. Indices total por clase  ---------------------------------------------
-
+  
   #Creacion  de las variables nominales y totales y con estas se realiza el
   #calculo de la contribucion mensual por dominio
   contribucion_mensual <- data %>%
@@ -1526,7 +1639,7 @@ f5_anacional <- function(directorio,
               sueltotemp_mensual=sum(SUELDOSADMONREAL),
               sueltotope_mensual=sum(SUELDOSPRODUCREAL),
               horas_mensual=sum(TOTALHORAS))
-
+  
   #Calculo de la contribucion con el anio base
   contribucion_base<- contribucion_mensual %>%
     filter(ANIO==2018) %>%
@@ -1546,14 +1659,14 @@ f5_anacional <- function(directorio,
               sueltotemp_total=mean(sueltotemp_mensual),
               sueltotope_total=mean(sueltotope_mensual),
               horas_total=mean(horas_mensual))
-
-
+  
+  
   contribucion_base<-subset(contribucion_base, select = -ANIO)
-
-
+  
+  
   contribucion<-contribucion_mensual %>%
     left_join(contribucion_base,by=c("DOMINIO_39"="DOMINIO_39"))
-
+  
   #Calculo de la variacion
   tabla1<-contribucion %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -1575,7 +1688,7 @@ f5_anacional <- function(directorio,
            produccion,ventasNom,ventas,personas,empleo,emptem,empleados,
            operarios,sueldos,suelemplper,suelempltem,sueltotemp,sueltotope,
            horas)
-
+  
   #Calculo de la contribucion mensual
   contribucion_mensual <- data %>%
     group_by(ANIO,MES) %>%
@@ -1595,7 +1708,7 @@ f5_anacional <- function(directorio,
               sueltotemp_mensual=sum(SUELDOSADMONREAL),
               sueltotope_mensual=sum(SUELDOSPRODUCREAL),
               horas_mensual=sum(TOTALHORAS))
-
+  
   #Calculo de la contribucion por el anio base
   contribucion_base <- contribucion_mensual %>%
     filter(ANIO==2018) %>%
@@ -1615,9 +1728,9 @@ f5_anacional <- function(directorio,
               sueltotemp_total=mean(sueltotemp_mensual),
               sueltotope_total=mean(sueltotope_mensual),
               horas_total=mean(horas_mensual))
-
+  
   contribucion_base<-subset(contribucion_base, select = -ANIO)
-
+  
   contribucion_mensual<-contribucion_mensual %>%
     mutate(produccionNom_total=contribucion_base$produccionNom_total,
            produccion_total=contribucion_base$produccion_total,
@@ -1634,8 +1747,8 @@ f5_anacional <- function(directorio,
            sueltotemp_total=contribucion_base$sueltotemp_total,
            sueltotope_total=contribucion_base$sueltotope_total,
            horas_total=contribucion_base$horas_total)
-
-
+  
+  
   #Calculo de la variables nominales y totales
   tabla1_1<-contribucion_mensual %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -1660,47 +1773,61 @@ f5_anacional <- function(directorio,
   tabla1_1["DOMINIO39_DESCRIP"]<-"Total Industria"
   tabla1$DOMINIO_39<-as.character(tabla1$DOMINIO_39)
   tabla1<-rbind(tabla1,tabla1_1)
-  tabla1_7<-tabla1 %>% arrange(DOMINIO_39,ANIO,MES)
-
+  tabla1$DOMINIO_39 <- ifelse(tabla1$DOMINIO_39=="T_IND",paste0(0,tabla1$DOMINIO_39),tabla1$DOMINIO_39)
+  tabla1<-tabla1 %>% arrange(DOMINIO_39,ANIO,MES)
+  tabla1$DOMINIO_39 <- ifelse(tabla1$DOMINIO_39=="0T_IND",substr(tabla1$DOMINIO_39,2,nchar(tabla1$DOMINIO_39)),tabla1$DOMINIO_39)
+  tabla1_7 <- tabla1
+  
   #Exportar
-
-  sheet <- sheets[[9]]
-  addDataFrame(data.frame(tabla1_7), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 12, startColumn = 1)
-
-
+  
+  sheet <- sheets[9]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1_7),
+                      startRow = 12, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero 2018 - ",meses_enu[mes]," ",anio,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 7, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1_7)+13), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1_7)+14), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fuente. DANE - EMMET")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1_7)+14), startColumn = 1)
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1_7)+15), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("p: provisionales")
-
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1_7)+15), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1_7)+16), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: La diferencia entre el total y la suma de los dominios se debe a aproximaciones decimales.")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1_7)+16), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1_7)+17), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: Se presentan cambios por actualización de información de parte de las fuentes informantes")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1_7)+17), startColumn = 1)
-
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1_7)+18), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  
+  filas_pares <- seq(12, nrow(tabla1_7)+12, by = 2)
+  filas_impares <- seq(13, nrow(tabla1_7)+12, by = 2)
+  addStyle(wb, sheet, style=colgr, rows = filas_pares, cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_impares, cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1_7)+12), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcgr, rows = filas_pares, cols = ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = filas_impares, cols = ncol(tabla1_7), gridExpand = TRUE)
+  
+  addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1_7)+14), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1_7)+14):(nrow(tabla1_7)+18), cols = ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1_7)+18), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  
   # 9. Enlace legal hasta 2014 ----------------------------------------------
-
+  
   #Creacion de una matriz con 12 filas y el mismo numero de columnas del archivo
   # indices del 2014
   N<-as.data.frame(matrix(NA,ncol = ncol(indices_14),nrow = 12),colnames=FALSE)
   colnames(N)<-colnames(indices_14)
-
+  
   #Se une la matriz N con los índices, cada 60 datos
   in_prue<-NULL
   for(i in seq(from=60, to = nrow(indices_14), by =60)){
@@ -1710,16 +1837,16 @@ f5_anacional <- function(directorio,
     else{
       in_prue<-rbind(in_prue,indices_14[(i-59):i,],N)
     }
-
+    
   }
-
+  
   #Se acomoda de nuevo la base seleccionando algunas variables de in_prueba,
   # con otras seleccionadas de la base N
   indices_lag<-rbind(in_prue[13:nrow(in_prue),5:ncol(in_prue)],N[,5:ncol(N)])
   colnames(indices_lag) <- paste0("R", colnames(indices_lag))
   indices_lag<-cbind(in_prue,indices_lag)
   indices_lag<-indices_lag[-c((nrow(indices_lag)-11):nrow(indices_lag)),]
-
+  
   #Creacion de las variables de la tabla anteriormente construida
   variacion<-within(indices_lag,{
     VHORASTOTALESTRABAJADAS=HORASTOTALESTRABAJADAS/RHORASTOTALESTRABAJADAS
@@ -1738,9 +1865,9 @@ f5_anacional <- function(directorio,
     VPRODUCCIONREAL    =PRODUCCIONREAL/RPRODUCCIONREAL
     VPRODUCCIONNOMINAL =PRODUCCIONNOMINAL/RPRODUCCIONNOMINAL
   })
-
+  
   variacion <- variacion[!is.na(variacion$DOMINIOS),]
-
+  
   #Se crea la base de los indices con el anio base, previamente calculada
   tabla2<-tabla1_7 %>%
     filter(ANIO==2018)
@@ -1748,15 +1875,15 @@ f5_anacional <- function(directorio,
   colnames(tabla2)<-paste("I", colnames(variacion[,1:ncol(tabla2)]), sep = "")
   tabla2 <- select(tabla2, -"ICLASESINDUSTRIALES" )
   tabla2$IANO<-as.numeric(tabla2$IANO)
-
+  
   #Empalme de las variaciones y los indices
   varia<-variacion %>% left_join(tabla2,by=c("DOMINIOS"="IDOMINIOS",
                                              "ANO"="IANO","MES"="IMES"))
-
+  
   #Calculo de los enlaces
   varia<-varia %>%
     arrange(DOMINIOS,desc(ANO),desc(MES))
-
+  
   vector<-unique(varia$DOMINIOS)
   variac<-NULL
   for (k in vector) {
@@ -1769,8 +1896,8 @@ f5_anacional <- function(directorio,
     }
     variac<-rbind(variac,vari)
   }
-
-
+  
+  
   cols_i <- grep("^I", names(variac), value = TRUE)
   variac<- select(variac,c(DOMINIOS,ANO,MES,CLASESINDUSTRIALES,cols_i))
   colnames(variac)<-gsub("I","",names(variac))
@@ -1779,41 +1906,57 @@ f5_anacional <- function(directorio,
   tabla1<-rbind(variac,tabla1)
   tabla1<-tabla1 %>% arrange(DOMNOS,ANO,MES)
   tabla1<-tabla1 %>% rename("DOMINIOS"="DOMNOS")
-
+  tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="T_IND",paste0(0,tabla1$DOMINIOS),tabla1$DOMINIOS)
+  tabla1<-tabla1 %>% arrange(DOMINIOS)
+  tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="0T_IND",substr(tabla1$DOMINIOS,2,nchar(tabla1$DOMINIOS)),tabla1$DOMINIOS)
+  
+  tabla1$ANO <- as.character(tabla1$ANO)
+  tabla1$MES <- as.character(tabla1$MES)
+  
   #Exportar
-
-  sheet <- sheets[[12]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 13, startColumn = 1)
-
-
+  
+  sheet <- sheets[12]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1),
+                      startRow = 13, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero 2014 - ",meses_enu[mes]," ",anio,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 7, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+14), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+15), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fuente. DANE - EMMET")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+15), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+16), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("p: provisionales")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+16), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+17), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: La diferencia entre el total y la suma de los dominios se debe a aproximaciones decimales.")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+17), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+18), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: Se presentan cambios por actualización de información de parte de las fuentes informantes")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+18), startColumn = 1)
-
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+19), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  filas_pares <- seq(14, nrow(tabla1)+13, by = 2)
+  filas_impares <- seq(13, nrow(tabla1)+13, by = 2)
+  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcgr, rows = filas_impares, cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = filas_pares, cols = ncol(tabla1), gridExpand = TRUE)
+  
+  addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1)+15), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+15):(nrow(tabla1)+19), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1)+19), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  
   # 10. Enlace legal Hasta 2001 ---------------------------------------------
-
+  
   #Definicion de nuevos dominios
   data2<-data %>%
     filter(CLASE_CIIU4!=1922) %>%
@@ -1831,7 +1974,7 @@ f5_anacional <- function(directorio,
                       ifelse(DOMINIO_39_ENLACE=="1400b" , "Confección de prendas de vestir",
                              ifelse(DOMINIO_39_ENLACE=="2020d" , "Fabricación de otros productos químicos",
                                     ifelse(DOMINIO_39_ENLACE=="1900c" , "RefinaciC3n de petróleo",DOMINIO39_DESCRIP))))))
-
+  
   data2$TOTPERS <- as.numeric(data2$TOTPERS)
   data2$TOTPERS <- ifelse(is.na(data2$TOTPERS),0,data2$TOTPERS)
   #Calculo de la contribucion mensual
@@ -1844,7 +1987,7 @@ f5_anacional <- function(directorio,
               personas_mensual = sum(TOTPERS),
               personal_admon=sum(TOTALEMPLEOADMON),
               personal_operario=sum(TOTALEMPLEOPRODUC))
-
+  
   #Calculo de la contribucion con el anio base
   contribucion_base<- contribucion_mensual  %>%
     filter(ANIO==2018) %>%
@@ -1856,13 +1999,13 @@ f5_anacional <- function(directorio,
               personas_total=mean(personas_mensual),
               personal_admon_total=mean(personal_admon),
               personal_operario_total=mean(personal_operario))
-
+  
   contribucion_base<-subset(contribucion_base, select = -ANIO)
-
+  
   #Empalme de la contribucion base con la contribucion mensual
   contribucion<-contribucion_mensual %>%
     left_join(contribucion_base,by=c("DOMINIO_39_ENLACE"="DOMINIO_39_ENLACE"))
-
+  
   #Creacion de variables
   tabla1<-contribucion %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -1874,12 +2017,12 @@ f5_anacional <- function(directorio,
            operarios     =(personal_operario/personal_operario_total)*100) %>%
     select(DOMINIO_39_ENLACE,ANIO,MES,DOMINIO39_DESCRIP_ENLACE,produccionNom,
            produccion,ventasNom,ventas,personas,admon,operarios)
-
+  
   #Calculo de variables de contribucion mensual
-
+  
   data$TOTPERS <- as.numeric(data$TOTPERS)
   data$TOTPERS <- ifelse(is.na(data$TOTPERS),0,data$TOTPERS)
-
+  
   contribucion_mensual <- data %>%
     group_by(ANIO,MES) %>%
     summarise(produccionNom_mensual=sum(PRODUCCIONNOMPOND),
@@ -1889,7 +2032,7 @@ f5_anacional <- function(directorio,
               personas_mensual=sum(TOTPERS),
               personal_admon=sum(TOTALEMPLEOADMON),
               personal_operario=sum(TOTALEMPLEOPRODUC))
-
+  
   #Calculo de variables de contribucion con el anio base
   contribucion_base <- contribucion_mensual %>%
     filter(ANIO==2018) %>%
@@ -1901,7 +2044,7 @@ f5_anacional <- function(directorio,
               personas_total=mean(personas_mensual),
               personal_admon_total=mean(personal_admon),
               personal_operario_total=mean(personal_operario))
-
+  
   #Creacion de variables nominales y totales
   contribucion_mensual<-contribucion_mensual %>%
     mutate(produccionNom_total=contribucion_base$produccionNom_total,
@@ -1911,7 +2054,7 @@ f5_anacional <- function(directorio,
            personas_total=contribucion_base$personas_total,
            personal_admon_total=contribucion_base$personal_admon_total,
            personal_operario_total=contribucion_base$personal_operario_total)
-
+  
   #Calculo de variables nominales y totales
   tabla1_1<-contribucion_mensual %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -1927,9 +2070,9 @@ f5_anacional <- function(directorio,
   tabla1_1["DOMINIO39_DESCRIP_ENLACE"]<-"Total Industria"
   tabla1$DOMINIO_39_ENLACE<-as.character(tabla1$DOMINIO_39_ENLACE)
   tabla1<-rbind(tabla1,tabla1_1)
-
+  
   #Indicides 2001 agrupados por ciius
-
+  
   #Creacion  de las variables nominales y totales y con estas se realiza el
   #calculo de la contribucion mensual por dominio
   contribucion_mensual <- data2 %>%
@@ -1942,7 +2085,7 @@ f5_anacional <- function(directorio,
               personas_mensual=sum(TOTPERS),
               empleados_mensual=sum(TOTALEMPLEOADMON),
               operarios_mensual=sum(TOTALEMPLEOPRODUC))
-
+  
   #Calculo de la contribucion con el anio base
   contribucion_base<- contribucion_mensual %>%
     filter(ANIO==2018) %>%
@@ -1954,14 +2097,14 @@ f5_anacional <- function(directorio,
               personas_total=mean(personas_mensual),
               empleados_total=mean(empleados_mensual),
               operarios_total=mean(operarios_mensual))
-
-
+  
+  
   contribucion_base<-subset(contribucion_base, select = -ANIO)
-
-
+  
+  
   contribucion<-contribucion_mensual %>%
     left_join(contribucion_base,by=c("DOMINIO_39_ENLACE"="DOMINIO_39_ENLACE"))
-
+  
   #Calculo de la variacion
   tabla1a<-contribucion %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -1973,7 +2116,7 @@ f5_anacional <- function(directorio,
            operarios     =(operarios_mensual/operarios_total)*100) %>%
     select(DOMINIO_39_ENLACE,ANIO,MES,DOMINIO39_DESCRIP_ENLACE,produccionNom,
            produccion,ventasNom,ventas,personas,empleados,operarios)
-
+  
   #Calculo de la contribucion mensual
   contribucion_mensual <- data %>%
     group_by(ANIO,MES) %>%
@@ -1985,7 +2128,7 @@ f5_anacional <- function(directorio,
               personas_mensual=sum(TOTPERS),
               empleados_mensual=sum(TOTALEMPLEOADMON),
               operarios_mensual=sum(TOTALEMPLEOPRODUC))
-
+  
   #Calculo de la contribucion por el anio base
   contribucion_base <- contribucion_mensual %>%
     filter(ANIO==2018) %>%
@@ -1997,9 +2140,9 @@ f5_anacional <- function(directorio,
               personas_total=mean(personas_mensual),
               empleados_total=mean(empleados_mensual),
               operarios_total=mean(operarios_mensual))
-
+  
   contribucion_base<-subset(contribucion_base, select = -ANIO)
-
+  
   contribucion_mensual<-contribucion_mensual %>%
     mutate(produccionNom_total=contribucion_base$produccionNom_total,
            produccion_total=contribucion_base$produccion_total,
@@ -2008,8 +2151,8 @@ f5_anacional <- function(directorio,
            personas_total=contribucion_base$personas_total,
            empleados_total=contribucion_base$empleados_total,
            operarios_total=contribucion_base$operarios_total)
-
-
+  
+  
   #Calculo de la variables nominales y totales
   tabla1_1<-contribucion_mensual %>%
     mutate(produccionNom =(produccionNom_mensual/produccionNom_total)*100,
@@ -2026,12 +2169,12 @@ f5_anacional <- function(directorio,
   tabla1a$DOMINIO_39_ENLACE<-as.character(tabla1a$DOMINIO_39_ENLACE)
   tabla1b<-rbind(tabla1a,tabla1_1)
   tabla1_7<-tabla1b %>% arrange(DOMINIO_39_ENLACE,ANIO,MES)
-
+  
   #Creacion de una matriz con 12 filas y el mismo numero de columnas del archivo
   # enlaces del 2001
   N<-as.data.frame(matrix(NA,ncol = ncol(indices_01),nrow = 12),colnames=FALSE)
   colnames(N)<-colnames(indices_01)
-
+  
   #Se une la matriz N con los índices, cada 216 datos
   in_prue<-NULL
   for(i in seq(from=216, to = nrow(indices_01), by =216)){
@@ -2041,16 +2184,16 @@ f5_anacional <- function(directorio,
     else{
       in_prue<-rbind(in_prue,indices_01[(i-215):i,],N)
     }
-
+    
   }
-
+  
   #Se acomoda de nuevo la base seleccionando algunas variables de in_prueba,
   # con otras seleccionadas de la base N
   indices_lag<-rbind(in_prue[13:nrow(in_prue),5:ncol(in_prue)],N[,5:ncol(N)])
   colnames(indices_lag) <- paste0("R", colnames(indices_lag))
   indices_lag<-cbind(in_prue,indices_lag)
   indices_lag<-indices_lag[-c((nrow(indices_lag)-11):nrow(indices_lag)),]
-
+  
   #Creacion de las variables de la tabla anteriormente construida
   variacion<-within(indices_lag,{
     VPERSONALDEPRODUCCION  =PERSONALDEPRODUCCION/RPERSONALDEPRODUCCION
@@ -2061,9 +2204,9 @@ f5_anacional <- function(directorio,
     VPRODUCCIONREAL    =PRODUCCIONREAL/RPRODUCCIONREAL
     VPRODUCCIONNOMINAL =PRODUCCIONNOMINAL/RPRODUCCIONNOMINAL
   })
-
+  
   variacion <- variacion[!is.na(variacion$DOMINIOS),]
-
+  
   #Se crea la base de los indices con el anio base, previamente calculada
   tabla2<-tabla1_7 %>%
     filter(ANIO ==2018)
@@ -2078,10 +2221,10 @@ f5_anacional <- function(directorio,
   tabla2 <- select(tabla2, -"ICLASESINDUSTRIALES" )
   varia<-variacion %>% left_join(tabla2,by=c("DOMINIOS"="IDOMINIOS",
                                              "ANO"="IANO","MES"="IMES"))
-
+  
   varia<-varia %>%
     arrange(DOMINIOS,desc(ANO),desc(MES))
-
+  
   #Calculo de los enlaces
   vector<-unique(varia$DOMINIOS)
   variac<-NULL
@@ -2095,8 +2238,8 @@ f5_anacional <- function(directorio,
     }
     variac<-rbind(variac,vari)
   }
-
-
+  
+  
   cols_i <- grep("^I", names(variac), value = TRUE)
   variac<- select(variac,c(DOMINIOS,ANO,MES,CLASESINDUSTRIALES,cols_i))
   colnames(variac)<-gsub("I","",names(variac))
@@ -2106,65 +2249,85 @@ f5_anacional <- function(directorio,
   tabla1<-rbind(variac,tabla1)
   tabla1<-tabla1 %>% arrange(DOMNOS,ANO,MES)
   tabla1 <- tabla1 %>% rename("DOMINIOS"="DOMNOS")
-
-
-
+  tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="T_IND",paste0(0,tabla1$DOMINIOS),tabla1$DOMINIOS)
+  tabla1<-tabla1 %>% arrange(DOMINIOS,ANO,MES)
+  tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="0T_IND",substr(tabla1$DOMINIOS,2,nchar(tabla1$DOMINIOS)),tabla1$DOMINIOS)
+  
+  tabla1$ANO <- as.character(tabla1$ANO)
+  tabla1$MES <- as.character(tabla1$MES)
+  
   #Exportar
-
+  
   #names(sheets)
-  sheet <- sheets[[13]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 13, startColumn = 1)
-
-
+  sheet <- sheets[13]
+  openxlsx::writeData(wb,sheet,as.data.frame(tabla1),
+                      startRow = 13, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero 2001 - ",meses_enu[mes]," ",anio,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 7, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+14), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+15), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fuente. DANE - EMMET")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+15), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+16), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("p: provisionales")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+16), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+17), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("a) agrupa los dominios 1030, 1082 y 1089 ")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+17), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+18), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("b) agrupa los dominios 1300 y 1400")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+18), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+19), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("c) No incluye la mezcla de combustibles")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+19), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+20), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("d) agrupa los dominios 2020, 2023 y 2100")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+20), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+21), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("e) agrupa los dominios 1050 y 1090")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+21), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+22), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: La diferencia entre el total y la suma de los dominios se debe a aproximaciones decimales.")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+22), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+23), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Nota: Se presentan cambios por actualización de información de parte de las fuentes informantes")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(tabla1)+23), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(tabla1)+24), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  
+  filas_pares <- seq(14, nrow(tabla1)+13, by = 2)
+  filas_impares <- seq(13, nrow(tabla1)+13, by = 2)
+  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcgr, rows = filas_impares, cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = filas_pares, cols = ncol(tabla1), gridExpand = TRUE)
+  
+  addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1)+15), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+15):(nrow(tabla1)+24), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1)+24), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  
+  tabla1$ANO <- as.numeric(tabla1$ANO)
+  tabla1$MES <- as.numeric(tabla1$MES)
+  
   # 8. Desestacionalizacion -------------------------------------------------
-
+  
   CALENDAR.FN <- function(From_year,To_year){
-    festivos<-read_xlsx(paste0(directorio,"/data/festivos/festivos.xlsx"))
+    festivos <- read_xlsx(paste0(directorio,"/data/festivos/festivos.xlsx"))
+    #read_xlsx(paste0(directorio,"/data/festivos/festivos.xlsx"))
     days <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
     #days <- c("Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado")
     calendar   <- data.frame(dates=seq(as.POSIXct(paste0(From_year,"-01-01"),tz="GMT"),as.POSIXct(paste0(To_year,"-12-31"),tz="GMT"),"days"))
@@ -2172,7 +2335,7 @@ f5_anacional <- function(directorio,
     calendar$month <- month(calendar$dates)
     calendar$day   <- day(calendar$dates)
     calendar$wday  <- days[wday(calendar$dates)]
-
+    
     # Incluir los dias festivos que no se mueven cuC!ndo caen en fin de semana +
     # antes de 2011
     add_holidays <- c(paste0(From_year:To_year,"-01-01"),
@@ -2181,20 +2344,20 @@ f5_anacional <- function(directorio,
                       paste0(From_year:To_year,"-08-07"),
                       paste0(From_year:To_year,"-12-08"),
                       paste0(From_year:To_year,"-12-25"))
-
+    
     holidays <- c(as.POSIXct(add_holidays,format="%Y-%m-%d",tz="GMT"),as.POSIXct(festivos$FESTIVOS,format="%Y-%m-%d",tz="GMT"))
     holidays <- sort(holidays[!duplicated(holidays)])
-
+    
     # Incluir domingo de ramos y domingo de resurreccion
     holidays <- c(holidays,holidays[diff(holidays)==1]-ddays(4),holidays[diff(holidays)==1]+ddays(3))
     holidays <- sort(holidays[!duplicated(holidays)])
-
+    
     calendar$holiday <- ifelse(as.POSIXct(calendar$dates,format="%Y-%m-%d",tz="GMT")%in%holidays,1,0)
-
+    
     calendar_group <- calendar %>% group_by(year,month, wday) %>% summarise(total=n(),holidays=sum(holiday))
     calendar_group$total_available_days <- calendar_group$total-calendar_group$holidays
     calendar_pivot <- calendar_group %>% select(c("year","month","wday","total_available_days")) %>% pivot_wider(id_cols = c("year","month"),names_from = c("wday"),values_from = c("total_available_days"))
-
+    
     calendar_final <- calendar_pivot
     for(i in days[-1]){
       calendar_final[,paste0(i)] <- calendar_final[,i]-calendar_final$Sunday
@@ -2203,34 +2366,34 @@ f5_anacional <- function(directorio,
     return(calendar_final)
   }
   calendar<-as.data.frame(CALENDAR.FN(2001,anio))
-
-
+  
+  
   # Produccion Real ---------------------------------------------------------
-
+  
   #Seleccion de variables de produccion real
   produccionreal<-tabla1[,c("DOMINIOS","ANO","MES","PRODUCCONREAL")]
   produccionreal<-produccionreal %>% filter(DOMINIOS=="T_IND")
-
+  
   produccionreal<-produccionreal %>%
     right_join(calendar,by=c("ANO"="year","MES"="month"))
   produccionreal<-produccionreal[,c("PRODUCCONREAL","Monday","Tuesday","Wednesday",
                                     "Thursday","Friday","Saturday")]
-
+  
   #Convertir la tabla en una serie de tiempo
   produccionreal_ts <- ts(produccionreal$PRODUCCONREAL, start = c(2001,1),frequency = 12)
   calendar_ts<-ts(produccionreal[,2:ncol(produccionreal)],start = c(2001,1),frequency = 12)
   colnames(calendar_ts)<-NULL
-
-
+  
+  
   #Destacionalizacion
-  produccionreal_desest <-seas(
+  produccionreal_desest <- seasonal::seas(
     x = produccionreal_ts,
-    #arima.model = " ",
+    arima.model = "(0 1 1)(0 1 1)",
     series.span = paste0(" 2001.1,",anio,".",mes," "),
     #" 2001.1,2022.11",
     #series.span = "2001.1,2022.11",
     #series.modelspan = "2001.1,2022.11",
-    transform.function = "auto",
+    #transform.function = "auto",
     xreg = calendar_ts,
     regression.variables = c("easter[2]", "lpyear", "AO2016.Jul", "AO2016.Aug",
                              "AO2020.Mar", "TC2020.Apr", "AO2021.May"),
@@ -2245,36 +2408,36 @@ f5_anacional <- function(directorio,
     history.estimates = c("fcst","aic","sadj","sadjchng", "trend","trendchng"),
     na.action = na.omit
   )
-
+  
   #Tabla  con los resultados de la desestacionalizacion
   tabla_prod<-as.data.frame(produccionreal_desest$data)
   tabla_prod<-tabla_prod$final
   deses<-tabla1[,c("DOMINIOS","ANO","MES","CLASESNDUSTRALES")]
   deses<-deses %>% filter(DOMINIOS=="T_IND")
   deses<-cbind(deses,tabla_prod)
-
+  
   # Ventas Reales -----------------------------------------------------------
-
+  
   #Seleccion de variables de ventas real
   ventasreales<-tabla1[,c("DOMINIOS","ANO","MES","VENTASREALES")]
   ventasreales<-ventasreales %>% filter(DOMINIOS=="T_IND")
-
+  
   ventasreales<-ventasreales %>%
     right_join(calendar,by=c("ANO"="year","MES"="month"))
   ventasreales<-ventasreales[,c("VENTASREALES","Monday","Tuesday","Wednesday",
                                 "Thursday","Friday","Saturday")]
-
-
+  
+  
   #Convertir la tabla en una serie de tiempo
   ventasreales_ts <- ts(ventasreales$VENTASREALES, start = c(2001,1),frequency = 12)
   calendar_ts<-ts(ventasreales[,2:ncol(ventasreales)],start = c(2001,1),frequency = 12)
   colnames(calendar_ts)<-NULL
-
-
+  
+  
   #Destacionalizacion
   ventasreales_desest <-seas(
     x = ventasreales_ts,
-    #arima.model = " ",
+    arima.model = "(0 1 1)(0 1 1)",
     series.span = paste0(" 2001.1,",anio,".",mes," "),
     #series.span = "2001.1,2022.11",
     #series.modelspan = "2001.1,2022.11",
@@ -2293,35 +2456,35 @@ f5_anacional <- function(directorio,
     history.estimates = c("fcst","aic","sadj","sadjchng", "trend","trendchng"),
     na.action = na.omit
   )
-
+  
   #Tabla  con los resultados de la desestacionalizacion
   tabla_vent<-as.data.frame(ventasreales_desest$data)
   tabla_vent<-tabla_vent$final
   deses<-cbind(deses,tabla_vent)
-
-
-
+  
+  
+  
   # Empleo Total ------------------------------------------------------------
-
+  
   #Seleccion de variables de empleo
   empleototal<-tabla1[,c("DOMINIOS","ANO","MES","EMPLEOTOTAL")]
   empleototal<-empleototal %>% filter(DOMINIOS=="T_IND")
-
+  
   empleototal<-empleototal %>%
     right_join(calendar,by=c("ANO"="year","MES"="month"))
   empleototal<-empleototal[,c("EMPLEOTOTAL","Monday","Tuesday","Wednesday",
                               "Thursday","Friday","Saturday")]
-
+  
   #Convertir la tabla en una serie de tiempo
   empleototal_ts <- ts(empleototal$EMPLEOTOTAL, start = c(2001,1),frequency = 12)
   calendar_ts<-ts(empleototal[,2:ncol(empleototal)],start = c(2001,1),frequency = 12)
   colnames(calendar_ts)<-NULL
-
-
+  
+  
   #Destacionalizacion
   empleototal_desest <-seas(
     x = empleototal_ts,
-    #arima.model = " ",
+    arima.model = "(0 1 1)(0 1 1)",
     series.span = paste0(" 2001.1,",anio,".",mes," "),
     transform.function = "auto",
     xreg = calendar_ts,
@@ -2338,218 +2501,232 @@ f5_anacional <- function(directorio,
     history.estimates = c("fcst","aic","sadj","sadjchng", "trend","trendchng"),
     na.action = na.omit
   )
-
+  
   #Tabla  con los resultados de la desestacionalizacion
   tabla_empl<-as.data.frame(empleototal_desest$data)
   tabla_empl<-tabla_empl$final
   deses<-cbind(deses,tabla_empl)
-
-
+  
+  
   #Exportar
-
+  
   #names(sheets)
-  sheet <- sheets[[11]]
-  addDataFrame(data.frame(deses), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 14, startColumn = 1)
-
-
+  sheet <- sheets[11]
+  openxlsx::writeData(wb,sheet,as.data.frame(deses),
+                      startRow = 14, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Enero 2001 - ",meses_enu[mes]," ",anio,"p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 8, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = 8, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(deses)+15), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(deses)+16), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Fuente. DANE - EMMET")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(deses)+16), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(deses)+17), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("p: provisionales")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(deses)+17), startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(deses)+18), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
   Enunciado<-paste0("Programa utilizado: X13 ARIMA US Census Bureau")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = (nrow(deses)+18), startColumn = 1)
-
-  # 11. Var y cont_Trienal --------------------------------------------------
-
-
-  #Calculo de la contribucion total
-  contribucion_total <- data %>%
-    filter(MES==mes & ANIO%in%c(2019)) %>%
-    summarise(produccion_total = sum(PRODUCCIONREALPOND),
-              ventas_total=sum(VENTASREALESPOND),
-              personal_total=sum(TOTPERS))
-
-  #contribucion_total <- contr_sum_an(contribucion_total)
-
-  #Calculo de la contribucion mensual
-  contribucion <- data %>%
-    filter(MES==mes & ANIO%in%c(anio,2019)) %>%
-    #mutate(PERSONAL=TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC) %>%
-    group_by(ANIO,MES,DOMINIO_39,DOMINIO39_DESCRIP) %>%
-    summarise(prod = sum(PRODUCCIONREALPOND),
-              vent=sum(VENTASREALESPOND),
-              per=sum(TOTPERS)) %>%
-    group_by(DOMINIO_39,DOMINIO39_DESCRIP) %>%
-    summarise(produccion=(prod[2]-prod[1])/contribucion_total$produccion_total,
-              ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
-              personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
-    arrange(produccion)
-
-  #contribucion <- contr_fin(11,contribucion)
-
-  #Calculo de la variacion
-  tabla1 <- data %>%
-    filter(ANIO%in%c(anio,2019) & MES%in%mes) %>%
-    group_by(ANIO,DOMINIO_39,DOMINIO39_DESCRIP) %>%
-    summarise(produccionNom=sum(PRODUCCIONNOMPOND),
-              produccion=sum(PRODUCCIONREALPOND),
-              ventasNom = sum(VENTASNOMINPOND),
-              ventas = sum(VENTASREALESPOND),
-              #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
-              personas=sum(TOTPERS))
-
-  #tabla1 <- tabla_summarise(11,tabla1)
-
-  tabla1 <- tabla1 %>%
-    pivot_wider(names_from = c("ANIO"),
-                values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-  #tabla1 <- tabla_pivot(11,tabla1)
-
-  #tabla1 <- tabla_paste_an(11,tabla1)
-
-  tabla1[paste0("varprodnom_",anio)] <- (tabla1[paste0("produccionNom_",anio)]-tabla1[paste0("produccionNom_",2019)])/tabla1[paste0("produccionNom_",2019)]
-  tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",2019)])/tabla1[paste0("produccion_",2019)]
-  tabla1[paste0("varventasnom_",anio)]<- (tabla1[paste0("ventasNom_",anio)]-tabla1[paste0("ventasNom_",2019)])/tabla1[paste0("ventasNom_",2019)]
-  tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",2019)])/tabla1[paste0("ventas_",2019)]
-  tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",2019)])/tabla1[paste0("personas_",2019)]
-
-
-
-
-  tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:5)],names_to = "variables",values_to = "value" )
-
-  #tabla1 <- tabla_acople(tabla1)
-  tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
-  tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
-  tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
-  tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
-
-
-  #Empalme de la variacion y contribucion
-  tabla1 <- tabla1 %>%
-    left_join(contribucion,by=c("DOMINIO_39"="DOMINIO_39",
-                                "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
-  tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
-                      "varprod","produccion","varventasnom","varventas","ventas",
-                      "varpersonas","personal")]
-
-  for( i in c("varprodnom",
-              "varprod","produccion","varventasnom","varventas","ventas",
-              "varpersonas","personal")){
-    tabla1[,i] <-  tabla1[,i]*100
-  }
-
-  #Total Industria
-
-  contribucion1 <- data %>%
-    filter(MES==mes & ANIO%in%c(anio,2019)) %>%
-    #mutate(PERSONAL=TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC) %>%
-    group_by(ANIO,MES) %>%
-    summarise(prod = sum(PRODUCCIONREALPOND),
-              vent=sum(VENTASREALESPOND),
-              per=sum(TOTPERS))
-  contribucion1["DOMINIO_39"] <- "Total Industria"
-  contribucion1["DOMINIO39_DESCRIP"] <- ""
-  contribucion1 <- contribucion1 %>%
-    group_by(DOMINIO_39,DOMINIO39_DESCRIP) %>%
-    summarise(produccion=(prod[2]-prod[1])/contribucion_total$produccion_total,
-              ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
-              personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
-    arrange(produccion)
-
-  #contribucion <- contr_fin(11,contribucion)
-
-  #Calculo de la variacion
-  tabla2 <- data %>%
-    filter(ANIO%in%c(anio,2019) & MES%in%mes) %>%
-    group_by(ANIO) %>%
-    summarise(produccionNom=sum(PRODUCCIONNOMPOND),
-              produccion=sum(PRODUCCIONREALPOND),
-              ventasNom = sum(VENTASNOMINPOND),
-              ventas = sum(VENTASREALESPOND),
-              #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
-              personas=sum(TOTPERS))
-
-  #tabla2 <- tabla_summarise(11,tabla2)
-
-  tabla2 <- tabla2 %>%
-    pivot_wider(names_from = c("ANIO"),
-                values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
-
-  #tabla2 <- tabla_pivot(11,tabla2)
-
-  #tabla2 <- tabla_paste_an(11,tabla2)
-
-  tabla2[paste0("varprodnom_",anio)] <- (tabla2[paste0("produccionNom_",anio)]-tabla2[paste0("produccionNom_",2019)])/tabla2[paste0("produccionNom_",2019)]
-  tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",2019)])/tabla2[paste0("produccion_",2019)]
-  tabla2[paste0("varventasnom_",anio)]<- (tabla2[paste0("ventasNom_",anio)]-tabla2[paste0("ventasNom_",2019)])/tabla2[paste0("ventasNom_",2019)]
-  tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",2019)])/tabla2[paste0("ventas_",2019)]
-  tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",2019)])/tabla2[paste0("personas_",2019)]
-
-
-
-
-  tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:5)],names_to = "variables",values_to = "value" )
-
-  #tabla2 <- tabla_acople(tabla2)
-  tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
-  tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
-  tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
-  tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
-
-  tabla2["DOMINIO_39"] <- "Total Industria"
-  tabla2["DOMINIO39_DESCRIP"] <- ""
-
-  #Empalme de la variacion y contribucion
-  tabla2 <- tabla2 %>%
-    left_join(contribucion1,by=c("DOMINIO_39"="DOMINIO_39",
-                                 "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
-  tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
-                      "varprod","produccion","varventasnom","varventas","ventas",
-                      "varpersonas","personal")]
-
-  for( i in c("varprodnom",
-              "varprod","produccion","varventasnom","varventas","ventas",
-              "varpersonas","personal")){
-    tabla2[,i] <-  tabla2[,i]*100
-  }
-
-
-  tabla1 <- tabla1 %>% arrange(DOMINIO_39)
-  tabla1 <- rbind(tabla2,tabla1)
-
-  #Exportar
-  names(sheets)
-  sheet <- sheets[[14]]
-  addDataFrame(data.frame(tabla1), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 13, startColumn = 1)
-
-
-  Enunciado<-paste0(meses_enu[mes],"(",anio,"/","2019)p")
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE,
-               row.names=FALSE, startRow = 9, startColumn = 1)
-
-  Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
-  addDataFrame(data.frame(Enunciado), sheet, col.names=FALSE, row.names=FALSE,
-               startRow = 57, startColumn = 1)
-
+  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+                      startRow = (nrow(deses)+19), startCol = 1,colNames=FALSE, rowNames=FALSE)
+  
+  filas_pares <- seq(14, nrow(deses)+14, by = 2)
+  filas_impares <- seq(15, nrow(deses)+14, by = 2)
+  addStyle(wb, sheet, style=colgr, rows = filas_pares, cols = 1:ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_impares, cols = 1:ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(deses)+14), cols = 1:ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcgr, rows = filas_pares, cols = ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = filas_impares, cols = ncol(deses), gridExpand = TRUE)
+  
+  
+  addStyle(wb, sheet, style=rowbl, rows = (nrow(deses)+16), cols = 1:ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(deses)+16):(nrow(deses)+19), cols = ncol(deses), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrbl, rows = (nrow(deses)+19), cols = 1:ncol(deses), gridExpand = TRUE)
+  
+  
+  
+  
+  # # 11. Var y cont_Trienal --------------------------------------------------
+  # 
+  # 
+  # #Calculo de la contribucion total
+  # contribucion_total <- data %>%
+  #   filter(MES==mes & ANIO%in%c(2019)) %>%
+  #   summarise(produccion_total = sum(PRODUCCIONREALPOND),
+  #             ventas_total=sum(VENTASREALESPOND),
+  #             personal_total=sum(TOTPERS))
+  # 
+  # #contribucion_total <- contr_sum_an(contribucion_total)
+  # 
+  # #Calculo de la contribucion mensual
+  # contribucion <- data %>%
+  #   filter(MES==mes & ANIO%in%c(anio,2019)) %>%
+  #   #mutate(PERSONAL=TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC) %>%
+  #   group_by(ANIO,MES,DOMINIO_39,DOMINIO39_DESCRIP) %>%
+  #   summarise(prod = sum(PRODUCCIONREALPOND),
+  #             vent=sum(VENTASREALESPOND),
+  #             per=sum(TOTPERS)) %>%
+  #   group_by(DOMINIO_39,DOMINIO39_DESCRIP) %>%
+  #   summarise(produccion=(prod[2]-prod[1])/contribucion_total$produccion_total,
+  #             ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
+  #             personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
+  #   arrange(produccion)
+  # 
+  # #contribucion <- contr_fin(11,contribucion)
+  # 
+  # #Calculo de la variacion
+  # tabla1 <- data %>%
+  #   filter(ANIO%in%c(anio,2019) & MES%in%mes) %>%
+  #   group_by(ANIO,DOMINIO_39,DOMINIO39_DESCRIP) %>%
+  #   summarise(produccionNom=sum(PRODUCCIONNOMPOND),
+  #             produccion=sum(PRODUCCIONREALPOND),
+  #             ventasNom = sum(VENTASNOMINPOND),
+  #             ventas = sum(VENTASREALESPOND),
+  #             #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
+  #             personas=sum(TOTPERS))
+  # 
+  # #tabla1 <- tabla_summarise(11,tabla1)
+  # 
+  # tabla1 <- tabla1 %>%
+  #   pivot_wider(names_from = c("ANIO"),
+  #               values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
+  # 
+  # #tabla1 <- tabla_pivot(11,tabla1)
+  # 
+  # #tabla1 <- tabla_paste_an(11,tabla1)
+  # 
+  # tabla1[paste0("varprodnom_",anio)] <- (tabla1[paste0("produccionNom_",anio)]-tabla1[paste0("produccionNom_",2019)])/tabla1[paste0("produccionNom_",2019)]
+  # tabla1[paste0("varprod_",anio)] <- (tabla1[paste0("produccion_",anio)]-tabla1[paste0("produccion_",2019)])/tabla1[paste0("produccion_",2019)]
+  # tabla1[paste0("varventasnom_",anio)]<- (tabla1[paste0("ventasNom_",anio)]-tabla1[paste0("ventasNom_",2019)])/tabla1[paste0("ventasNom_",2019)]
+  # tabla1[paste0("varventas_",anio)]<- (tabla1[paste0("ventas_",anio)]-tabla1[paste0("ventas_",2019)])/tabla1[paste0("ventas_",2019)]
+  # tabla1[paste0("varpersonas_",anio)] <- (tabla1[paste0("personas_",anio)]-tabla1[paste0("personas_",2019)])/tabla1[paste0("personas_",2019)]
+  # 
+  # 
+  # 
+  # 
+  # tabla1 <- tabla1 %>% pivot_longer(cols = colnames(tabla1)[-c(1:5)],names_to = "variables",values_to = "value" )
+  # 
+  # #tabla1 <- tabla_acople(tabla1)
+  # tabla1$ANIO <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 2)
+  # tabla1$variables <- sapply(strsplit(as.character(tabla1$variables), "_"), `[`, 1)
+  # tabla1 <- tabla1 %>% filter(gsub("var","",variables)!=variables )
+  # tabla1 <- tabla1 %>% pivot_wider(names_from = variables,values_from = value)
+  # 
+  # 
+  # #Empalme de la variacion y contribucion
+  # tabla1 <- tabla1 %>%
+  #   left_join(contribucion,by=c("DOMINIO_39"="DOMINIO_39",
+  #                               "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
+  # tabla1 <- tabla1[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
+  #                     "varprod","produccion","varventasnom","varventas","ventas",
+  #                     "varpersonas","personal")]
+  # 
+  # for( i in c("varprodnom",
+  #             "varprod","produccion","varventasnom","varventas","ventas",
+  #             "varpersonas","personal")){
+  #   tabla1[,i] <-  tabla1[,i]*100
+  # }
+  # 
+  # #Total Industria
+  # 
+  # contribucion1 <- data %>%
+  #   filter(MES==mes & ANIO%in%c(anio,2019)) %>%
+  #   #mutate(PERSONAL=TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC) %>%
+  #   group_by(ANIO,MES) %>%
+  #   summarise(prod = sum(PRODUCCIONREALPOND),
+  #             vent=sum(VENTASREALESPOND),
+  #             per=sum(TOTPERS))
+  # contribucion1["DOMINIO_39"] <- "Total Industria"
+  # contribucion1["DOMINIO39_DESCRIP"] <- ""
+  # contribucion1 <- contribucion1 %>%
+  #   group_by(DOMINIO_39,DOMINIO39_DESCRIP) %>%
+  #   summarise(produccion=(prod[2]-prod[1])/contribucion_total$produccion_total,
+  #             ventas=(vent[2]-vent[1])/contribucion_total$ventas_total,
+  #             personal=(per[2]-per[1])/contribucion_total$personal_total) %>%
+  #   arrange(produccion)
+  # 
+  # #contribucion <- contr_fin(11,contribucion)
+  # 
+  # #Calculo de la variacion
+  # tabla2 <- data %>%
+  #   filter(ANIO%in%c(anio,2019) & MES%in%mes) %>%
+  #   group_by(ANIO) %>%
+  #   summarise(produccionNom=sum(PRODUCCIONNOMPOND),
+  #             produccion=sum(PRODUCCIONREALPOND),
+  #             ventasNom = sum(VENTASNOMINPOND),
+  #             ventas = sum(VENTASREALESPOND),
+  #             #personas=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC)
+  #             personas=sum(TOTPERS))
+  # 
+  # #tabla2 <- tabla_summarise(11,tabla2)
+  # 
+  # tabla2 <- tabla2 %>%
+  #   pivot_wider(names_from = c("ANIO"),
+  #               values_from = c("produccionNom","produccion","ventasNom","ventas","personas"))
+  # 
+  # #tabla2 <- tabla_pivot(11,tabla2)
+  # 
+  # #tabla2 <- tabla_paste_an(11,tabla2)
+  # 
+  # tabla2[paste0("varprodnom_",anio)] <- (tabla2[paste0("produccionNom_",anio)]-tabla2[paste0("produccionNom_",2019)])/tabla2[paste0("produccionNom_",2019)]
+  # tabla2[paste0("varprod_",anio)] <- (tabla2[paste0("produccion_",anio)]-tabla2[paste0("produccion_",2019)])/tabla2[paste0("produccion_",2019)]
+  # tabla2[paste0("varventasnom_",anio)]<- (tabla2[paste0("ventasNom_",anio)]-tabla2[paste0("ventasNom_",2019)])/tabla2[paste0("ventasNom_",2019)]
+  # tabla2[paste0("varventas_",anio)]<- (tabla2[paste0("ventas_",anio)]-tabla2[paste0("ventas_",2019)])/tabla2[paste0("ventas_",2019)]
+  # tabla2[paste0("varpersonas_",anio)] <- (tabla2[paste0("personas_",anio)]-tabla2[paste0("personas_",2019)])/tabla2[paste0("personas_",2019)]
+  # 
+  # 
+  # 
+  # 
+  # tabla2 <- tabla2 %>% pivot_longer(cols = colnames(tabla2)[-c(1:5)],names_to = "variables",values_to = "value" )
+  # 
+  # #tabla2 <- tabla_acople(tabla2)
+  # tabla2$ANIO <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 2)
+  # tabla2$variables <- sapply(strsplit(as.character(tabla2$variables), "_"), `[`, 1)
+  # tabla2 <- tabla2 %>% filter(gsub("var","",variables)!=variables )
+  # tabla2 <- tabla2 %>% pivot_wider(names_from = variables,values_from = value)
+  # 
+  # tabla2["DOMINIO_39"] <- "Total Industria"
+  # tabla2["DOMINIO39_DESCRIP"] <- ""
+  # 
+  # #Empalme de la variacion y contribucion
+  # tabla2 <- tabla2 %>%
+  #   left_join(contribucion1,by=c("DOMINIO_39"="DOMINIO_39",
+  #                                "DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
+  # tabla2 <- tabla2[,c("DOMINIO_39","DOMINIO39_DESCRIP","varprodnom",
+  #                     "varprod","produccion","varventasnom","varventas","ventas",
+  #                     "varpersonas","personal")]
+  # 
+  # for( i in c("varprodnom",
+  #             "varprod","produccion","varventasnom","varventas","ventas",
+  #             "varpersonas","personal")){
+  #   tabla2[,i] <-  tabla2[,i]*100
+  # }
+  # 
+  # 
+  # tabla1 <- tabla1 %>% arrange(DOMINIO_39)
+  # tabla1 <- rbind(tabla2,tabla1)
+  # 
+  # #Exportar
+  # names(sheets)
+  # sheet <- sheets[14]
+  # openxlsx::writeData(wb,sheet,as.data.frame(tabla1),
+  #                     startRow = 13, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  # 
+  # Enunciado<-paste0(meses_enu[mes],"(",anio,"/","2019)p")
+  # openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+  #                     startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  # 
+  # Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
+  # openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
+  #                     startRow = 57, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  # 
   # Guardar archivo de salida -----------------------------------------------
-
-  saveWorkbook(wb, Salida)
+  
+  openxlsx::saveWorkbook(wb,Salida,overwrite = TRUE)
 
 }
