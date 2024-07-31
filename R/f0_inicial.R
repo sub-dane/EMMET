@@ -25,7 +25,7 @@
 #'
 #' @examples f0_inicial(directorio="Documents/DANE/Procesos DIMPE /PilotoEMMET")
 
-f0_inicial<-function(directorio){
+f0_inicial<-function(directorio,anio,mes){
 
   #instalar todas las librerias necesarias para el proceso
 
@@ -47,16 +47,7 @@ f0_inicial<-function(directorio){
   # Cargar todas las librerías
   lapply(librerias, require, character.only = TRUE)
 
-#Descargar archivo necesario
 
-  url_excel <- "https://github.com/NataliArteaga/DANE.EMMET/raw/main/festivos.zip"
-
-  # Definir el nombre y la ubicación del archivo de Excel descargado
-  archivo_excel <- file.path(directorio, "data/festivos.zip")
-
-  # Descargar el archivo de Excel desde GitHub
-  download.file(url_excel, destfile = archivo_excel)
-  unzip(archivo_excel, exdir = file.path(directorio, "data/festivos"))
 
   #crear la función que revisa si la carpeta existe, de lo contrario la crea
   crearCarpeta <- function(ruta) {
@@ -78,6 +69,18 @@ f0_inicial<-function(directorio){
   ruta=paste0(directorio,"/results/S1_integracion")
   crearCarpeta(ruta)
 
+  #crear la carpeta data
+  ruta=paste0(directorio,"/data")
+  crearCarpeta(ruta)
+  
+  #crear la carpeta del año
+  ruta=paste0(directorio,"/data/",anio)
+  crearCarpeta(ruta)
+  
+  meses <- c("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
+  #crear la carpeta del mes
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes])
+  crearCarpeta(ruta)
 
   #crear la carpeta de alertas
   ruta=paste0(directorio,"/results/S2_identificacion_alertas")
@@ -125,6 +128,16 @@ f0_inicial<-function(directorio){
                                             "EXISTENCIAS","ID_MUNICIPIO","NOMBREMPIO"))
   Var_inicial <- list(variables_iniciales)
 
+  #Descargar archivo necesario
+  
+  url_excel <- "https://github.com/NataliArteaga/DANE.EMMET/raw/main/festivos.zip"
+  
+  # Definir el nombre y la ubicación del archivo de Excel descargado
+  archivo_excel <- file.path(directorio, "data/festivos.zip")
+  
+  # Descargar el archivo de Excel desde GitHub
+  download.file(url_excel, destfile = archivo_excel)
+  unzip(archivo_excel, exdir = file.path(directorio, "data/festivos"))  
   library(openxlsx)
 
   # Escribir la base de datos en la primera hoja del archivo Excel
