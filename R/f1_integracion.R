@@ -76,7 +76,7 @@ f1_integracion <- function(directorio,
  # Cargar bases necesarias y aplicar funcion de formato de nombres
 
  #Cambio: se agrea , sheet = "LOGISTICA"
- base_logistica          <- read_excel(paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".xlsx"))
+ base_logistica          <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".xlsx"))
  colnames(base_logistica) <- colnames_format(base_logistica)
 
  #cambia en las columnas que contienen la palabra "OBSE" cualquier caracter que no sea alfanumerico por un espacio
@@ -92,7 +92,7 @@ f1_integracion <- function(directorio,
  base_logistica           <-  base_logistica %>%
    mutate_at(vars("DEPARTAMENTO"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 
- parametro <- read_excel(paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheet = "Vector")
+ parametro <- read.xlsx(paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheet = "Vector")
 
  base_logistica           <-  base_logistica %>%
    select(parametro$Var_inicial)
@@ -105,7 +105,7 @@ f1_integracion <- function(directorio,
 
  #Cargar bases insumo
 
- base_parametrica           <- read_excel(paste0(directorio,"/data/EMMET_parametrica_historico.xlsx"))
+ base_parametrica           <- read.xlsx(paste0(directorio,"/data/EMMET_parametrica_historico.xlsx"))
  colnames(base_parametrica) <- colnames_format(base_parametrica)
 
  # Concatenar base Logistica con base Original ----------------------------------------------------
