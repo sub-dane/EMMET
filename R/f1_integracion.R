@@ -105,7 +105,7 @@ f1_integracion <- function(directorio,
 
  #Cargar bases insumo
 
- base_parametrica           <- read.xlsx(paste0(directorio,"/data/EMMET_parametrica_historico.xlsx"))
+ base_parametrica           <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"EMMET_parametrica_historico.xlsx"))
  colnames(base_parametrica) <- colnames_format(base_parametrica)
 
  # Concatenar base Logistica con base Original ----------------------------------------------------
