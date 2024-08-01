@@ -68,6 +68,7 @@ f1_integracion <- function(directorio,
  library(dplyr)
  library(data.table)
  library(writexl)
+ library(openxlsx)
  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
 
 
