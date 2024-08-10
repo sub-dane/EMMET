@@ -40,7 +40,7 @@ f10_shiny <- function(directorio, mes, anio) {
   library(readxl)
   library(lubridate)
   library(shiny)
-  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+  source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   assign("directorio", directorio, envir = .GlobalEnv)
   assign("mes", mes, envir = .GlobalEnv)
   assign("anio", anio, envir = .GlobalEnv)

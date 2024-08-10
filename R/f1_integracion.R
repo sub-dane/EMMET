@@ -69,7 +69,7 @@ f1_integracion <- function(directorio,
  library(data.table)
  library(writexl)
  library(openxlsx)
- source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+ source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
 
 
 
@@ -98,32 +98,45 @@ f1_integracion <- function(directorio,
  base_logistica           <-  base_logistica %>%
    select(parametro$Var_inicial)
 
- write.csv(base_logistica,paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),row.names=F)
+write.csv(base_logistica,paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),row.names=F)
 
  base_logistica          <-  read_csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".csv"))
  colnames(base_logistica) <- colnames_format(base_logistica)
 
-
+ base_logistica$MES=as.numeric(base_logistica$MES)
+ base_logistica$ANIO=as.numeric(base_logistica$ANIO)
  #Cargar bases insumo
 
- base_parametrica           <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"EMMET_parametrica_historico.xlsx"))
+ base_parametrica           <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_parametrica_historico.xlsx"))
  colnames(base_parametrica) <- colnames_format(base_parametrica)
-
+base_parametrica$ID_NUMORD=as.character(base_parametrica$ID_NUMORD)
  # Concatenar base Logistica con base Original ----------------------------------------------------
 
  #base_panel <- rbind.data.frame(base_logistica,base_original)
- base_panel <- base_logistica
 
- # Concatenar con Base Parametrica ---------------------------------------------
- base_panel <- base_panel %>%
-   left_join(base_parametrica %>% select(!c(NOMBRE_ESTABLECIMIENTO,NOVEDAD,CLASE_CIIU4,
-                                            DOMINIO_39,DOMINIO39_DESCRIP,ID_MUNICIPIO,
-                                            NOMBREMPIO)),
-             by=c("NORDEST"="NORDEST","ANIO"="ANIO","MES"="MES"))
+base_logistica$NORDEST=as.character(base_logistica$NORDEST)
+# Concatenar con Base Parametrica ---------------------------------------------
+base_panel <- base_parametrica %>%
+  left_join(base_logistica %>% select(!c(NOMBRE_ESTABLECIMIENTO,DEPARTAMENTO)),
+            by=c("ID_NUMORD"="NORDEST","ANIO"="ANIO","MES"="MES"))
+
+base_panel <- base_panel %>%
+  rename_with(~ gsub("\\.x$", "", .), ends_with(".x")) %>%
+  select(-ends_with(".y")) %>% 
+  rename(NORDEST=ID_NUMORD,NOMBRE_ESTABLECIMIENTO=NOMBRE_ESTAB,DEPARTAMENTO=NOMBREDPTO)
 
  # Estandarizacion nombres Departamento y Municipio ------------------------------------------------
- base_panel=base_panel %>%
-   mutate_at(vars("DOMINIO39_DESCRIP"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
+base_panel           <-  base_panel %>%
+  mutate_at(vars(contains("OBSER")),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
+
+base_panel           <-  base_panel %>%
+  mutate_at(vars("DOMINIO39_DESCRIP"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
+
+base_panel           <-  base_panel %>%
+  mutate_at(vars("NOMBRE_ESTABLECIMIENTO"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
+
+base_panel           <-  base_panel %>%
+  mutate_at(vars("DEPARTAMENTO"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 
  # Estandarizar Variables Numericas ----------------------------------------
 

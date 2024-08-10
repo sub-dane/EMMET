@@ -128,7 +128,7 @@ f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
   library(data.table)
   library(forecast)
   library(tsoutliers)
-  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+  source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
 
 
   #cargar la base de datos

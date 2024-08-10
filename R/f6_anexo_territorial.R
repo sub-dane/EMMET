@@ -270,7 +270,7 @@ f6_aterritorial <- function(directorio,
   library(DT)
   library(data.table)
 
-  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+  source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
 
   # Cargar bases y variables ------------------------------------------------
 

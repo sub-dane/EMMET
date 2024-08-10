@@ -62,7 +62,7 @@ f3_imputacion <- function(directorio,mes,anio,avance=100) {
   library(forecast)
   library(openxlsx)
   library(imputeTS)
-  source("https://raw.githubusercontent.com/NataliArteaga/DANE.EMMET/main/R/utils.R")
+  source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   
   
   #cargar base estandarizada
@@ -94,10 +94,10 @@ f3_imputacion <- function(directorio,mes,anio,avance=100) {
   datos <- filter(datos, !(ANIO == anio & MES == mes))
   #cargar la base de alertas
   if(avance==100){
-    wowimp=fread(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),encoding = "Latin-1")
+    wowimp=read.csv(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),fileEncoding = "latin1")
     
   }else{
-    wowimp=fread(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".csv"),encoding = "Latin-1")
+    wowimp=read.csv(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".csv"),fileEncoding = "latin1")
     
   }
   wowimp=as.data.frame(wowimp)
