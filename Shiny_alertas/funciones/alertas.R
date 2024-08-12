@@ -28,7 +28,7 @@ for (i in variablesinte) {
   base_panel[,i] <- ifelse(is.na(base_panel[,i]),0,base_panel[,i])
 }
 base_variables_encuesta <- base_panel %>%
-  select(ANIO,MES,NOVEDAD,NOMBREDEPARTAMENTO,NOMBREMUNICIPIO,
+  select(ANIO,MES,DEPARTAMENTO,NOMBREMPIO,
          NORDEST,NOMBRE_ESTABLECIMIENTO,DOMINIO_39,CLASE_CIIU4,
          NPERS_EP,AJU_SUELD_EP,NPERS_ET,
          AJU_SUELD_ET,NPERS_ETA,
@@ -44,10 +44,10 @@ base_variables_encuesta=as.data.frame(base_variables_encuesta)
 
 des <- base_variables_encuesta %>%
   filter(ANIO==anio & MES%in%c(mes-1,mes))  %>%
-  pivot_longer(cols=colnames(base_variables_encuesta)[8:length(colnames(base_variables_encuesta))],names_to = "Variables",values_to ="Valores") %>%
+  pivot_longer(cols=colnames(base_variables_encuesta)[9:length(colnames(base_variables_encuesta))],names_to = "Variables",values_to ="Valores") %>%
   pivot_wider(names_from = "MES",values_from = "Valores")
 des=as.data.frame(des)
-colnames(des)[c(8,9)] <- c(meses_c[mes-1],meses_c[mes])
+colnames(des)[c(9,10)] <- c(meses_c[mes-1],meses_c[mes])
 des$variacion <- round(((abs(des[,paste0(meses_c[mes])]-des[,paste0(meses_c[mes-1])])/des[,paste0(meses_c[mes-1])])*100),2)
 des$variacion[des[, paste0(meses_c[mes])] != 0 & des[, paste0(meses_c[mes - 1])] == 0] <- 100
 des$variacion[des[, paste0(meses_c[mes])] == 0 & des[, paste0(meses_c[mes - 1])] == 0] <- 0
@@ -57,10 +57,10 @@ varinteres=paste0(variablesinte,"_caso_de_imputacion")
 
 des2 <- alertas %>% filter(ANIO==anio & MES==mes) %>%
   pivot_longer(cols=varinteres,names_to = "Variables",values_to ="Caso_imputacion")  %>%
-  select(ANIO,NOMBREDEPARTAMENTO,NOMBREMUNICIPIO,NORDEST,NOMBRE_ESTABLECIMIENTO,DOMINIO_39,Variables,Caso_imputacion)
+  select(ANIO,DEPARTAMENTO,NOMBREMPIO,NORDEST,NOMBRE_ESTABLECIMIENTO,DOMINIO_39,Variables,Caso_imputacion)
 des2$Variables <- sub("\\_caso_de_imputacion", "", des2$Variables)
 des2=as.data.frame(des2)
-df_merge <- merge(des, des2, by = c("ANIO","NOMBREDEPARTAMENTO","NOMBREMUNICIPIO",
+df_merge <- merge(des, des2, by = c("ANIO","DEPARTAMENTO","NOMBREMPIO",
                                     "NORDEST","NOMBRE_ESTABLECIMIENTO","DOMINIO_39" ,"Variables"))
 
 # Seleccionar todas las columnas de la tabla B y la columna valores 2 de la tabla A
@@ -84,7 +84,7 @@ cambio=c("Empleados_permanentes","Ajuste_sueldos_Empleados_Permanentes",
          "Ajuste_Producción","Ajuste_Venta_productos_elaborados_país",
          "Ajuste_Venta_productos_elaborados_exterior","Valor_existencias_precio_costo")
 desf$Variables <- factor(desf$Variables, levels= variablesinte, labels = cambio)
-colnames(base_variables_encuesta)[8:length(colnames(base_variables_encuesta))]=c("Empleados_permanentes","Ajuste_sueldos_Empleados_Permanentes",
+colnames(base_variables_encuesta)[9:length(colnames(base_variables_encuesta))]=c("Empleados_permanentes","Ajuste_sueldos_Empleados_Permanentes",
                                                                                  "Empleados_temporales", "Ajuste_sueldos_Empleados_Temporales",
                                                                                  "Empleados_temporales_agencias","Ajuste_sueldos_Empleados_Temporales_Agencia",
                                                                                  "Aprendices_pasantes","Ajuste_apoyo_sostenimiento_Aprendices_Pasantes",

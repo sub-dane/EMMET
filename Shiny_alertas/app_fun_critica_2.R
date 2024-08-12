@@ -1,4 +1,3 @@
-
 library(shiny)
 library(shinyauthr)
 library(flexdashboard)
@@ -49,7 +48,6 @@ if(dbExistsTable(pool,"responses_df")){
                append = TRUE)
 }
 
-str(dbReadTable(pool, "responses_df"))
 
 # dataframe that holds usernames, passwords and other user data
 user_base <- tibble::tibble(
@@ -142,7 +140,7 @@ server <- function(input, output, session) {
                       column(6,
                              selectInput("anio", "Año:", choices = c(unique(tematica$ANIO)[-1])),
                              selectInput("mes", "Mes:", choices = c(unique(tematica$MES))),
-                             selectInput("dominio", "Actividad ecónomica:", choices = c("Todos",unique(tematica$DESCRIPCIONDOMINIOEMMET39)))),
+                             selectInput("dominio", "Actividad ecónomica:", choices = c("Todos",unique(tematica$DESCRIPCIONDOMINIO_39)))),
                       column(6,
                              selectInput("depto", "Departamento:", choices =  c("Todos",unique(tematica$INCLUSION_NOMBRE_DEPTO))),
                              selectInput("metro", "Área metropolitana:", choices =  c("Todos",unique(tematica$AREA_METROPOLITANA))),
@@ -174,7 +172,7 @@ server <- function(input, output, session) {
                              selectInput("anio2", "Año:", choices = c(unique(tematica$ANIO)[-1])),
                              selectInput("mes2", "Mes:", choices = c(unique(tematica$MES)))),
                       column(4,
-                             selectInput("dominio2", "Actividad ecónomica:", choices = c("Todos",unique(tematica$DESCRIPCIONDOMINIOEMMET39))),
+                             selectInput("dominio2", "Actividad ecónomica:", choices = c("Todos",unique(tematica$DESCRIPCIONDOMINIO_39))),
                              selectInput("depto2", "Departamento:", choices =  c("Todos",unique(tematica$INCLUSION_NOMBRE_DEPTO)))),
                       column(4,
                              selectInput("metro2", "Área metropolitana:", choices =  c("Todos",unique(tematica$AREA_METROPOLITANA))),
@@ -197,8 +195,8 @@ server <- function(input, output, session) {
                     box(
                       title = "Filtros", width = 12, solidHeader = TRUE, status = "info",
                       column(4,
-                             #selectInput("nombre3", "Nombre Establecimiento:", choices =  c(unique(base_panel$NOMBRE_ESTAB))),
-                             selectInput("id_num_crit", "Id NumOrd:", choices = c(unique(base_panel$ID_NUMORD))),
+                             #selectInput("nombre3", "Nombre Establecimiento:", choices =  c(unique(base_panel$NOMBRE_ESTABLECIMIENTO))),
+                             selectInput("id_num_crit", "Id NumOrd:", choices = c(unique(base_panel$NORDEST))),
                       ),
                       column(4,
                              selectInput("anio_crit", "AÑO:", choices = c("Todos",unique(desf$ANIO)),selected = max(c(unique(desf$ANIO))))
@@ -211,7 +209,7 @@ server <- function(input, output, session) {
                   fluidRow(
                     column(width=12,
                            #infoBox(tags$span("Año", style="text-transform: none;"),textOutput("anio_imp"),icon=tags$i(class = "fas fa-thumbs-up", style="font-size: 12px; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
-                           #infoBox(tags$span("Id_numord", style="text-transform: none;"),textOutput("id_numord_imp"),icon=tags$i(class = "fingerprint", style="font-size: 12px; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
+                           #infoBox(tags$span("NORDEST", style="text-transform: none;"),textOutput("NORDEST_imp"),icon=tags$i(class = "fingerprint", style="font-size: 12px; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
                            infoBox(tags$span("Dominio EMMET", style="text-transform: none;"),textOutput("dominio_imp"),icon=icon("id-card", style="font-size: 80%; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
                            infoBox(tags$span("Departamento", style="text-transform: none;"),textOutput("departamento_imp"),icon=icon("map-pin", style="font-size: 80%; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
                            infoBox(tags$span("Municipio", style="text-transform: none;"),textOutput("municipio_imp"),icon=icon("map-pin", style="font-size: 80%; color: white"),color="yellow",value=tags$p(style = "font-size: 10px;")),
@@ -229,7 +227,7 @@ server <- function(input, output, session) {
                            dataTableOutput("responses_table", width = "100%")#)
                   ),
                   selectInput("variable", label = "Variable:",
-                              choices = colnames(base_variables_encuesta)[8:length(colnames(base_variables_encuesta))], selected = "Empleados_permanentes"),
+                              choices = colnames(base_variables_encuesta)[10:length(colnames(base_variables_encuesta))], selected = "Empleados_permanentes"),
                   fluidRow(
                     box(
                       title="Gráfica de la serie",
@@ -256,7 +254,7 @@ server <- function(input, output, session) {
           #           box(
           #             title = "Filtros", width = 12, solidHeader = TRUE, status = "info",
           #             column(4,
-          #                    selectInput("id_num", "ID_NUNMORD:", choices = c("Todos",unique(desf$ID_NUMORD)))
+          #                    selectInput("id_num", "ID_NUNMORD:", choices = c("Todos",unique(desf$NORDEST)))
           #
           #                    ),
           #             column(4,
@@ -299,7 +297,7 @@ server <- function(input, output, session) {
     datos2$ANIO2 <- as.numeric(ifelse(datos2$MES%in%c((as.numeric(input$mes)+1):12),datos2$ANIO+1,datos2$ANIO))
 
     if(input$dominio!="Todos"){
-      datos2 <- datos2 %>% filter(DESCRIPCIONDOMINIOEMMET39==input$dominio)
+      datos2 <- datos2 %>% filter(DESCRIPCIONDOMINIO_39==input$dominio)
     }
 
     if(input$depto!="Todos"){
@@ -390,7 +388,7 @@ server <- function(input, output, session) {
     datos$ANIO2 <- as.numeric(ifelse(datos$MES%in%c((as.numeric(input$mes)+1):12),datos$ANIO+1,datos$ANIO))
 
     if(input$dominio2!="Todos"){
-      datos <- datos %>% filter(DESCRIPCIONDOMINIOEMMET39==input$dominio2)
+      datos <- datos %>% filter(DESCRIPCIONDOMINIO_39==input$dominio2)
     }
 
     if(input$depto2!="Todos"){
@@ -404,7 +402,7 @@ server <- function(input, output, session) {
       datos <- datos %>% filter(CIUDAD==input$ciudad2)
     }
 
-    datos$desa_cat <- ifelse(rep(input$desa=="CIIU",dim(datos)[1]),datos$DESCRIPCIONDOMINIOEMMET39,
+    datos$desa_cat <- ifelse(rep(input$desa=="CIIU",dim(datos)[1]),datos$DESCRIPCIONDOMINIO_39,
                              ifelse(rep(input$desa=="Dpto",dim(datos)[1]),datos$INCLUSION_NOMBRE_DEPTO,
                                     ifelse(rep(input$desa=="Área metropolitana",dim(datos)[1]),as.character(datos$AREA_METROPOLITANA),
                                            ifelse(rep(input$desa=="Ciudad",dim(datos)[1]),datos$CIUDAD,NA))))
@@ -449,19 +447,19 @@ server <- function(input, output, session) {
 
 
   dataEstab <- reactive({
-    datos <- desf %>%  filter(ID_NUMORD%in%input$id_num_crit)
+    datos <- desf %>%  filter(NORDEST%in%input$id_num_crit)
     return(datos)
   })
 
   base_variables <- reactive({
-    datos <- base_variables_encuesta %>% filter(ID_NUMORD%in%input$id_num_crit)
+    datos <- base_variables_encuesta %>% filter(NORDEST%in%input$id_num_crit)
     return(datos)
   })
 
   contribucion_ranking <- reactive({
     #Se halla la contribucion total
     contribucion_total <- tematica %>%
-      group_by(ANIO,MES,DOMINIO_39,ID_DEPARTAMENTO)%>%
+      group_by(ANIO,MES,DOMINIO_39,DEPARTAMENTO)%>%
       summarise(produccion_total = sum(PRODUCCIONREALPOND),
                 ventas_total=sum(VENTASREALESPOND),
                 personal_total=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC))
@@ -469,23 +467,23 @@ server <- function(input, output, session) {
     #Se halla la contribución específica
     contribucion <- tematica %>%
       mutate(PERSONAL=TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL+TOTALEMPLEOADMON+TOTALEMPLEOPRODUC) %>%
-      group_by(ANIO,MES,ID_NUMORD,DOMINIO_39,ID_DEPARTAMENTO) %>%
+      group_by(ANIO,MES,NORDEST,DOMINIO_39,DEPARTAMENTO) %>%
       summarise(prod = sum(PRODUCCIONREALPOND),vent=sum(VENTASREALESPOND),per=sum(PERSONAL))
 
 
     contribucion_final<-contribucion %>%
-      left_join(contribucion_total, by=c("DOMINIO_39"="DOMINIO_39","MES"="MES","ANIO"="ANIO", "ID_DEPARTAMENTO"="ID_DEPARTAMENTO")) %>%
+      left_join(contribucion_total, by=c("DOMINIO_39"="DOMINIO_39","MES"="MES","ANIO"="ANIO", "DEPARTAMENTO"="DEPARTAMENTO")) %>%
       mutate(produccion=produccion_total/prod,
              ventas=ventas_total/vent,
              personal=personal_total/per) %>%
       arrange(produccion, ventas,personal) %>%
-      group_by(ANIO,MES,ID_DEPARTAMENTO,DOMINIO_39) %>%
+      group_by(ANIO,MES,DEPARTAMENTO,DOMINIO_39) %>%
       mutate(Ranking=c(1:n())) %>%
-      select(ANIO,MES,ID_NUMORD,DOMINIO_39,produccion,ventas,personal,Ranking)
+      select(ANIO,MES,NORDEST,DOMINIO_39,produccion,ventas,personal,Ranking)
 
 
     contribucion_mostrar<- contribucion_final %>%
-      filter(ANIO==input$anio_crit & MES==input$mes_crit & ID_NUMORD==input$id_num_crit)
+      filter(ANIO==input$anio_crit & MES==input$mes_crit & NORDEST==input$id_num_crit)
 
     contribucion_rank<-contribucion_mostrar[,length(contribucion_mostrar)]
 
@@ -503,7 +501,7 @@ server <- function(input, output, session) {
 
 
     if(input$id_num_crit!="Todos"){
-      datos3 <- datos3 %>% filter(ID_NUMORD==input$id_num_crit)
+      datos3 <- datos3 %>% filter(NORDEST==input$id_num_crit)
     }
     if(input$anio_crit!="Todos"){
       datos3 <- datos3 %>% filter(ANIO==input$anio_crit)
@@ -577,7 +575,7 @@ server <- function(input, output, session) {
 
 
     if(input$id_num_crit!="Todos"){
-      datos3 <- datos3 %>% filter(ID_NUMORD==input$id_num_crit)
+      datos3 <- datos3 %>% filter(NORDEST==input$id_num_crit)
     }
     if(input$anio_crit!="Todos"){
       datos3 <- datos3 %>% filter(ANIO==input$anio_crit)
@@ -613,9 +611,9 @@ server <- function(input, output, session) {
   })
   output$responses_table <- DT::renderDataTable({
 
-    table <- dataCrit() %>% select("LLAVE","ID_NUMORD","Variables",meses_c[mes-1],
+    table <- dataCrit() %>% select("LLAVE","NORDEST","Variables",meses_c[mes-1],
                                    meses_c[mes],"variacion","Caso_imputacion",
-                                   "OBSERVACIONES","EDITADO")#,"NOMBRE_ESTAB","DOMINIOEMMET39"
+                                   "OBSERVACIONES","EDITADO")#,"NOMBRE_ESTABLECIMIENTO","DOMINIO_39"
     #names(table) <- c("ID","Date", "Name", "Sex", "Comment", "Age")
     table <- datatable(table,
                        selection = "single",
@@ -640,7 +638,7 @@ server <- function(input, output, session) {
   # output$tabla <- renderDataTable({
   #
   #   tabla <- dataEstab() %>%
-  #     select(NOMBRE_ESTAB,Variables,Octubre,Noviembre,variacion,Caso_imputacion)
+  #     select(NOMBRE_ESTABLECIMIENTO,Variables,Octubre,Noviembre,variacion,Caso_imputacion)
   #     #mutate(Observaciones = map(rowname, .f = ~textinput_gt(.x,"_textinput", label = paste("My text label", .x))))
   #   colnames(tabla)[c(3,4)] <- c("Octubre 2022","Noviembre 2022")
   #   tabla
@@ -648,7 +646,7 @@ server <- function(input, output, session) {
 
   output$tablaserie <- renderDataTable({
     tabla <- base_variables() %>%
-      select(ANIO,MES,NOMBRE_ESTAB,input$variable)
+      select(ANIO,MES,NOMBRE_ESTABLECIMIENTO,input$variable)
     tabla
   },options = list(pageLength = 100))
 
@@ -656,7 +654,7 @@ server <- function(input, output, session) {
     tabla <- base_variables()
     smexter_a=ts(tabla[,input$variable],start=c(2018,1),frequency=12)
     ts_plot(smexter_a,
-            title = paste0("Serie ",as.character(input$variable)," para el establecimiento ",as.character(input$nombre3)),
+            title = paste0("Serie ",as.character(input$variable)," para el establecimiento ",as.character(tabla[1,"NOMBRE_ESTABLECIMIENTO"])),
             Ytitle = "Valor",
             Xtitle = "Año",
             Xgrid = TRUE,
@@ -667,17 +665,17 @@ server <- function(input, output, session) {
     dataEstab()$ANIO[1]
 
   })
-  output$id_numord_imp <- renderText({
-    dataEstab()$ID_NUMORD[1]
+  output$NORDEST_imp <- renderText({
+    dataEstab()$NORDEST[1]
   })
   output$dominio_imp <- renderText({
-    dataEstab()$DOMINIOEMMET39[1]
+    dataEstab()$DOMINIO_39[1]
   })
   output$departamento_imp <- renderText({
-    dataEstab()$NOMBREDEPARTAMENTO[1]
+    dataEstab()$DEPARTAMENTO[1]
   })
   output$municipio_imp <- renderText({
-    dataEstab()$NOMBREMUNICIPIO[1]
+    dataEstab()$NOMBREMPIO[1]
   })
   output$contribucion_imp<-renderText({
     paste0("Ranking: ",contribucion_ranking())
@@ -699,14 +697,14 @@ server <- function(input, output, session) {
     # Filtrar la tabla segC:n la selección del usuario
     if (input$capitulo_filtro == "Capitulo 3") {
       # Si se selecciona "Capítulo 2", filtrar la tabla segC:n la lista "capitulo_2"
-      tabla <- desf %>%select(NOMBRE_ESTAB,Variables,meses_c[mes-1],meses_c[mes],variacion,Caso_imputacion) %>%
+      tabla <- desf %>%select(NOMBRE_ESTABLECIMIENTO,Variables,meses_c[mes-1],meses_c[mes],variacion,Caso_imputacion) %>%
         filter((Variables %in% capitulo3) & Caso_imputacion==input$tipo)
 
       #pool <- dbPool(RSQLite::SQLite(), dbname = "Cap3")
 
     } else {
       # Si se selecciona "Capitulo 3", filtrar la tabla segC:n la lista "capitulo_3"
-      tabla <- desf %>%select(NOMBRE_ESTAB,Variables,meses_c[mes-1],meses_c[mes],variacion,Caso_imputacion) %>%
+      tabla <- desf %>%select(NOMBRE_ESTABLECIMIENTO,Variables,meses_c[mes-1],meses_c[mes],variacion,Caso_imputacion) %>%
         filter(!(Variables %in% capitulo3) & Caso_imputacion==input$tipo)
 
       #pool <- dbPool(RSQLite::SQLite(), dbname = "Cap2")
@@ -728,7 +726,7 @@ server <- function(input, output, session) {
   #
   #
   #     if(input$id_num!="Todos"){
-  #       datos3 <- datos3 %>% filter(ID_NUMORD==input$id_num)
+  #       datos3 <- datos3 %>% filter(NORDEST==input$id_num)
   #     }
   #     if(input$anio_crit!="Todos"){
   #       datos3 <- datos3 %>% filter(ANIO==input$anio_crit)
@@ -813,7 +811,7 @@ server <- function(input, output, session) {
   #
   #
   #     if(input$id_num!="Todos"){
-  #       datos3 <- datos3 %>% filter(ID_NUMORD==input$id_num)
+  #       datos3 <- datos3 %>% filter(NORDEST==input$id_num)
   #     }
   #     if(input$anio_crit!="Todos"){
   #       datos3 <- datos3 %>% filter(ANIO==input$anio_crit)
@@ -841,9 +839,9 @@ server <- function(input, output, session) {
   #   })
   #   output$responses_table <- DT::renderDataTable({
   #
-  #     table <- dataCrit() %>% select("LLAVE","ID_NUMORD","Variables","Octubre",
+  #     table <- dataCrit() %>% select("LLAVE","NORDEST","Variables","Octubre",
   #                                    "Noviembre","variacion","Caso_imputacion",
-  #                                    "OBSERVACIONES","EDITADO")#,"NOMBRE_ESTAB","DOMINIOEMMET39"
+  #                                    "OBSERVACIONES","EDITADO")#,"NOMBRE_ESTABLECIMIENTO","DOMINIO_39"
   #     #names(table) <- c("ID","Date", "Name", "Sex", "Comment", "Age")
   #     table <- datatable(table,
   #                        rownames = FALSE,
