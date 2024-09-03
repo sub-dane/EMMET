@@ -32,7 +32,7 @@ f0_inicial<-function(directorio,anio,mes){
   # Lista de librerías que deseas instalar o cargar
   librerias <- c("tidyverse", "ggplot2", "dplyr","readr","readxl","stringr","tidyr","lubridate","forecast",
                  "tsoutliers","data.table","VIM","scales","kableExtra","formattable","htmltools","webshot",
-                 "openxlsx","seasonal","xlsx","rmarkdown","roxygen2","plotly","gt","purrr","knitr","tinytex",
+                 "openxlsx","seasonal","rmarkdown","roxygen2","plotly","gt","purrr","knitr","tinytex",
                  "webshot2","installr","shiny","shinyauthr","flexdashboard","shinydashboard","shinyjs",
                  "DT","RSQLite","pool","uuid","zoo","xts","TSstudio","tseries","flextable","writexl")
 
