@@ -34,7 +34,7 @@ f0_inicial<-function(directorio,anio,mes){
                  "tsoutliers","data.table","VIM","scales","kableExtra","formattable","htmltools","webshot",
                  "openxlsx","seasonal","xlsx","rmarkdown","roxygen2","plotly","gt","purrr","knitr","tinytex",
                  "webshot2","installr","shiny","shinyauthr","flexdashboard","shinydashboard","shinyjs",
-                 "DT","RSQLite","pool","uuid","zoo","xts","TSstudio","tseries","flextable")
+                 "DT","RSQLite","pool","uuid","zoo","xts","TSstudio","tseries","flextable","writexl")
 
   # Verificar si las librerías están instaladas
   librerias_faltantes <- librerias[!sapply(librerias, requireNamespace, quietly = TRUE)]
