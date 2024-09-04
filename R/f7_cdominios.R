@@ -33,7 +33,6 @@ Cuadros_Dominios<-function(directorio,anio,mes){
   library(dplyr)
   library(tidyr)
   library(openxlsx)
-  library(xlsx)
   library(stringr)
   
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")

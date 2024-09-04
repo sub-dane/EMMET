@@ -38,7 +38,6 @@ Cuadros_regiones<-function(directorio,anio,mes){
   library("htmltools")
   library("webshot")
   library(openxlsx)
-  library(xlsx)
   library(DT)
   library(data.table)
   library(stringr)
