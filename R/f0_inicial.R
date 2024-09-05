@@ -140,11 +140,18 @@ f0_inicial<-function(directorio,anio,mes){
   unzip(archivo_excel, exdir = file.path(directorio, "data/festivos"))  
   library(openxlsx)
 
-  # Escribir la base de datos en la primera hoja del archivo Excel
-  write.xlsx(para_boletin, file =  paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheetName = "Parametros", row.names = FALSE)
+  wb <- createWorkbook()
+  
+  # Añadir la primera hoja con datos
+  addWorksheet(wb, "Parametros")
+  writeData(wb,sheet = "Parametros",para_boletin)
 
+  
+  # Añadir la segunda hoja con datos
+  addWorksheet(wb, "Vector")
+  writeData(wb, sheet = "Vector", list(variables_iniciales))  
+  
   # Escribir el vector en la segunda hoja del archivo Excel
-  write.xlsx(list(variables_iniciales), file =  paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheetName = "Vector", row.names = FALSE, append = TRUE)
-
+  saveWorkbook(wb,file =  paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), overwrite = TRUE)
   print(paste0("Se creo el archivo parametros_boletin.xlsx en ",directorio,"/results/S6_boletin/"))
 }
