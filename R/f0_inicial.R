@@ -105,7 +105,7 @@ f0_inicial<-function(directorio,anio,mes){
 
   para_boletin <- data.frame(parametro = c("IC_prod","IC_ven","IC_empl","TNR","TI_prod","TI_ven","TI_empl","Anio_grafico"),
                              valores = c(98.1,98.1,98.5,2,2.6,2.5,2.7,2018))
-  variables_iniciales <- list(Var_inicial=c("NORDEST","ANIO","MES","NOVEDAD","NOMBRE_ESTABLECIMIENTO",
+  variables_iniciales <- list(Var_inicial=c("Variables","NORDEST","ANIO","MES","NOVEDAD","NOMBRE_ESTABLECIMIENTO",
                                             "IMP","ID_ESTADO","NORDEMP","NIT","DEPARTAMENTO","CLASE_CIIU4",
                                             "DOMINIO_39","DOMINIO39_DESCRIP","NOM_CODSEDE","NPERS_EP",
                                             "SUELD_EP","AJU_SUELD_EP","FECHA_INI_EP","FECHA_FIN_EP",
