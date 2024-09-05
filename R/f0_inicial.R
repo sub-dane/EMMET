@@ -77,7 +77,6 @@ f0_inicial<-function(directorio,anio,mes){
   ruta=paste0(directorio,"/data/",anio)
   crearCarpeta(ruta)
   
-  meses <- c("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
   #crear la carpeta del mes
   ruta=paste0(directorio,"/data/",anio,"/",meses[mes])
   crearCarpeta(ruta)
@@ -130,7 +129,7 @@ f0_inicial<-function(directorio,anio,mes){
 
   #Descargar archivo necesario
   
-  url_excel <- "https://github.com/NataliArteaga/DANE.EMMET/raw/main/festivos.zip"
+  url_excel <- "https://github.com/sub-dane/EMMET/raw/main/festivos.zip"
   
   # Definir el nombre y la ubicación del archivo de Excel descargado
   archivo_excel <- file.path(directorio, "data/festivos.zip")
