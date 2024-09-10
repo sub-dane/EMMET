@@ -25,7 +25,7 @@
 #'
 #' @examples f0_inicial(directorio="Documents/DANE/Procesos DIMPE /PilotoEMMET")
 
-f0_inicial<-function(directorio,anio,mes){
+f0_inicial<-function(directorio,mes,anio){
 
   #instalar todas las librerias necesarias para el proceso
 
@@ -124,7 +124,7 @@ f0_inicial<-function(directorio,anio,mes){
                                             "FECHA_FIN_HORAS","PRODUCCION","AJU_PRODUCCION","VENTASIN",
                                             "AJU_VENTASIN","VENTASEX","AJU_VENTASEX","FECHA_INI_PYV",
                                             "FECHA_FIN_PYV","TOTAL_VENTAS","AJU_TOTAL_VENTAS",
-                                            "EXISTENCIAS","ID_MUNICIPIO","NOMBREMPIO"))
+                                            "EXISTENCIAS","ID_MUNICIPIO","MUNICIPIO"))
   Var_inicial <- list(variables_iniciales)
 
   #Descargar archivo necesario
