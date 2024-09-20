@@ -2,7 +2,7 @@
 #'
 #' @description
 #'
-#' Con esta función realizaremos la primera parte del proceso, en donde se correran las 4
+#' Con esta función realizaremos la primera parte del proceso, en donde se correran las 3
 #' primeras funciones.
 #'
 #'

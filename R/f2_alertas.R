@@ -134,8 +134,6 @@ f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
   #cargar la base de datos
   base_panel <-  fread(paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"), encoding = "Latin-1")
 
-
-  #base_panel[base_panel$ANIO==2023 & base_panel$MES==7 & base_panel$NORDEST==11123,'AJU_SUELD_EP']=1641
   #convertir la base en data frame y convertir variables de año y mes en numéricas
   datos<- as.data.frame(base_panel)
   for (i in variablesinte) {

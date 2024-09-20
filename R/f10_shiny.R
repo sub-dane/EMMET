@@ -45,7 +45,7 @@ f10_shiny <- function(directorio, mes, anio) {
   assign("mes", mes, envir = .GlobalEnv)
   assign("anio", anio, envir = .GlobalEnv)
 
-  url_boletin <- "https://github.com/NataliArteaga/DANE.EMMET/raw/main/Shiny_alertas.zip"
+  url_boletin <- "https://github.com/sub-dane/EMMET/raw/main/Shiny_alertas.zip"
 
   # Descargar y descomprimir la carpeta shiny
   archivo_zip <- file.path(directorio, "Shiny_alertas.zip")

@@ -76,7 +76,6 @@ f1_integracion <- function(directorio,
 
  # Cargar bases necesarias y aplicar funcion de formato de nombres
 
- #Cambio: se agrea , sheet = "LOGISTICA"
  base_logistica          <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".xlsx"))
  colnames(base_logistica) <- colnames_format(base_logistica)
 
@@ -96,7 +95,7 @@ f1_integracion <- function(directorio,
  parametro <- read.xlsx(paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheet = "Vector")
 
  base_logistica           <-  base_logistica %>%
-   select(parametro$Var_inicial)
+   select(parametro$Variables)
 
 write.csv(base_logistica,paste0(directorio,"/data/",anio,"/",meses[mes],"/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),row.names=F)
 
@@ -115,15 +114,16 @@ base_parametrica$ID_NUMORD=as.character(base_parametrica$ID_NUMORD)
  #base_panel <- rbind.data.frame(base_logistica,base_original)
 
 base_logistica$NORDEST=as.character(base_logistica$NORDEST)
-# Concatenar con Base Parametrica ---------------------------------------------
+base_parametrica=subset(base_parametrica, select = -NOMBREMPIO)
+# Concatenar con Base Parametrica --------------------------------------------- 
 base_panel <- base_parametrica %>%
   left_join(base_logistica %>% select(!c(NOMBRE_ESTABLECIMIENTO,DEPARTAMENTO)),
             by=c("ID_NUMORD"="NORDEST","ANIO"="ANIO","MES"="MES"))
-
+base_panel$DOMINIO_39.x=base_panel$DOMINIO_39.y
 base_panel <- base_panel %>%
   rename_with(~ gsub("\\.x$", "", .), ends_with(".x")) %>%
   select(-ends_with(".y")) %>% 
-  rename(NORDEST=ID_NUMORD,NOMBRE_ESTABLECIMIENTO=NOMBRE_ESTAB,DEPARTAMENTO=NOMBREDPTO)
+  rename(NORDEST=ID_NUMORD,NOMBRE_ESTABLECIMIENTO=NOMBRE_ESTAB,DEPARTAMENTO=NOMBREDPTO,NOMBREMPIO=MUNICIPIO)
 
  # Estandarizacion nombres Departamento y Municipio ------------------------------------------------
 base_panel           <-  base_panel %>%

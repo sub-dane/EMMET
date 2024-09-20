@@ -266,7 +266,6 @@ f6_aterritorial <- function(directorio,
   library("htmltools")
   library("webshot")
   library(openxlsx)
-  library(xlsx)
   library(DT)
   library(data.table)
 

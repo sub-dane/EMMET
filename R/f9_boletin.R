@@ -63,7 +63,7 @@ f9_boletin <- function(directorio, mes, anio, tipo = "word") {
     tinytex::install_tinytex()
   }
   # Definir la URL de la carpeta boletin en GitHub
-  url_boletin <- "https://github.com/NataliArteaga/DANE.EMMET/raw/main/boletin.zip"
+  url_boletin <- "https://github.com/sub-dane/EMMET/raw/main/boletin.zip"
 
   # Descargar y descomprimir la carpeta boletin
   archivo_zip <- file.path(directorio, "boletin.zip")

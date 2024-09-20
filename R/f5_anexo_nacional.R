@@ -279,7 +279,7 @@ f5_anacional <- function(directorio,
   library(seasonal)
   library(stringr)
   library(data.table)
-
+  library(purrr)
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
 
 
@@ -289,6 +289,7 @@ f5_anacional <- function(directorio,
   meses <- tolower(meses)
   meses_enu <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio",
                  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
+  meses_min<-tolower(meses_enu)
   data <- read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
   indices_14<- read_xlsx(paste0(directorio,"/data/Indices_2014.xlsx"))
   indices_01<- read_xlsx(paste0(directorio,"/data/Indices_2001.xlsx"))
@@ -349,8 +350,7 @@ f5_anacional <- function(directorio,
     bgFill = "#FFFFFF",
     halign = "center",
     valign = "center",
-    numFmt = "0.00",
-    wrapText = TRUE
+    numFmt = "0.0"
   )
   
   
@@ -361,11 +361,25 @@ f5_anacional <- function(directorio,
     fgFill = "#FFFFFF",
     halign = "center",
     valign = "center",
-    numFmt = "0.00",
-    wrapText = TRUE
+    numFmt = "0.0"
+  )
+
+  colgr_in <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    fgFill = "#F2F2F2",
+    bgFill = "#FFFFFF"
   )
   
-  ultbl <- createStyle(
+  
+  colbl_in <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    fgFill = "#FFFFFF"
+  )    
+    ultbl <- createStyle(
     fontName = "Segoe UI",
     fontSize = 9,
     fontColour = "#000000",
@@ -374,10 +388,20 @@ f5_anacional <- function(directorio,
     fgFill = "#FFFFFF",
     bgFill = "#FFFFFF",
     halign = "center",
-    valign = "center",
-    wrapText = TRUE
+    valign = "center"
   )
   
+  ultblfc <- createStyle(
+      fontName = "Segoe UI",
+      fontSize = 9,
+      fontColour = "#000000",
+      border = "Bottom: thin, Right: thin",
+      borderColour = "#000000",
+      fgFill = "#FFFFFF",
+      bgFill = "#FFFFFF",
+      halign = "center",
+      valign = "center"
+    )
   
   ultcgr <- createStyle(
     fontName = "Segoe UI",
@@ -389,8 +413,7 @@ f5_anacional <- function(directorio,
     valign = "center",
     fgFill = "#F2F2F2",
     bgFill = "#FFFFFF",
-    numFmt = "0.00",
-    wrapText = TRUE
+    numFmt = "0.0"
   )
   
   
@@ -404,8 +427,7 @@ f5_anacional <- function(directorio,
     valign = "center",
     fgFill = "#FFFFFF",
     bgFill = "#FFFFFF",
-    numFmt = "0.00",
-    wrapText = TRUE
+    numFmt = "0.0"
   )
   
   rowbl <- createStyle(
@@ -416,10 +438,19 @@ f5_anacional <- function(directorio,
     borderColour = "#000000",
     halign = "left",
     fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF",
-    numFmt = "0.00",
-    wrapText = TRUE
+    bgFill = "#FFFFFF"
   )
+
+  rowblf <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border ="Top: thin, Right: thin",
+    borderColour = "#000000",
+    halign = "left",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF"
+  )  
   
   ultrbl <- createStyle(
     fontName = "Segoe UI",
@@ -429,10 +460,16 @@ f5_anacional <- function(directorio,
     borderColour = "#000000",
     fgFill = "#FFFFFF",
     bgFill = "#FFFFFF",
-    numFmt = "0.00",
-    wrapText = TRUE
   )
-  
+  ultrblf <- createStyle(
+    fontName = "Segoe UI",
+    fontSize = 9,
+    fontColour = "#000000",
+    border = "Bottom: thin, Right: thin",
+    borderColour = "#000000",
+    fgFill = "#FFFFFF",
+    bgFill = "#FFFFFF",
+  )  
   
   # Funcion -----------------------------------------------------------------
   
@@ -729,9 +766,7 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
                       startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0(meses_enu[mes],"(",anio,"/",anio-1,")p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[mes]," (",anio," / ",anio-1,")[p]"))
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -893,9 +928,8 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
                       startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0(meses_enu[mes],"(",anio,"/",anio-1,")p")
-  openxlsx::writeData(wb,sheet,data.frame(Enunciado),startRow = 9, startCol = 1,
-                      colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[mes]," (",anio," / ",anio-1,")[p]"))
+
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,data.frame(Enunciado),startRow = 55, startCol = 1,
@@ -1060,9 +1094,8 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
                       startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0("Enero - ",meses_enu[mes],"(",anio,"/",anio-1,")p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0("Enero - ",meses_min[mes]," (",anio," / ",anio-1,")[p]"))
+  
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1215,9 +1248,7 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
                       startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0("Enero - ",meses_enu[mes]," (",anio,"/",anio-1,")p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0("Enero - ",meses_min[mes]," (",anio," / ",anio-1,")[p]"))
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1389,9 +1420,12 @@ f5_anacional <- function(directorio,
                       startRow = 13, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
   
-  Enunciado<-paste0(meses_enu[mes+1]," ",anio-1,"-",meses_enu[mes]," ",anio,"/",meses_enu[mes+1]," ",anio-2,"-",meses_enu[mes]," ",anio-1,"p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+if(mes==12){
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[1]," ",anio," - ",meses_min[mes]," ",anio," / ",meses_min[1]," ",anio-1," - ",meses_min[mes]," ",anio-1,"[p]"))
+}else{
+  addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[mes+1]," ",anio-1," - ",meses_min[mes]," ",anio," / ",meses_min[mes+1]," ",anio-2," - ",meses_min[mes]," ",anio-1,"[p]"))
+}
+  
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1608,9 +1642,11 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1[,3:ncol(tabla1)]),
                       startRow = 14, startCol = 3,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0(meses_enu[mes+1]," ",anio-1,"-",meses_enu[mes]," ",anio,"/",meses_enu[mes+1]," ",anio-2,"-",meses_enu[mes]," ",anio-1,"p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 9, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  if(mes==12){
+    addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[1]," ",anio," - ",meses_min[mes]," ",anio," / ",meses_min[1]," ",anio-1," - ",meses_min[mes]," ",anio-1,"[p]"))
+  }else{
+    addSuperSubScriptToCell_general(wb,sheet,row=9,col=1,texto = paste0(meses_enu[mes+1]," ",anio-1," - ",meses_min[mes]," ",anio," / ",meses_min[mes+1]," ",anio-2," - ",meses_min[mes]," ",anio-1,"[p]"))
+  }
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1783,9 +1819,8 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1_7),
                       startRow = 12, startCol = 1,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0("Enero 2018 - ",meses_enu[mes]," ",anio,"p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+
+  addSuperSubScriptToCell_general(wb,sheet,row=7,col=1,texto = paste0("Enero 2018 - ",meses_enu[mes]," ",anio,"[p]"))
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1810,15 +1845,20 @@ f5_anacional <- function(directorio,
   
   filas_pares <- seq(12, nrow(tabla1_7)+12, by = 2)
   filas_impares <- seq(13, nrow(tabla1_7)+12, by = 2)
-  addStyle(wb, sheet, style=colgr, rows = filas_pares, cols = 1:ncol(tabla1_7), gridExpand = TRUE)
-  addStyle(wb, sheet, style=colbl, rows = filas_impares, cols = 1:ncol(tabla1_7), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1_7)+12), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colgr_in, rows = filas_pares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl_in, rows = filas_impares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colgr, rows = filas_pares, cols = 5:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_impares, cols = 5:ncol(tabla1_7), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcgr, rows = filas_pares, cols = ncol(tabla1_7), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcbl, rows = filas_impares, cols = ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1_7)+12), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultblfc, rows = (nrow(tabla1_7)+12), cols = ncol(tabla1_7), gridExpand = TRUE)
   
   addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1_7)+14), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1_7)+14):(nrow(tabla1_7)+18), cols = ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=rowblf, rows = (nrow(tabla1_7)+14), cols = ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1_7)+15):(nrow(tabla1_7)+17), cols = ncol(tabla1_7), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1_7)+18), cols = 1:ncol(tabla1_7), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrblf, rows = (nrow(tabla1_7)+18), cols = ncol(tabla1_7), gridExpand = TRUE)
   
   # 9. Enlace legal hasta 2014 ----------------------------------------------
   
@@ -1918,9 +1958,8 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1),
                       startRow = 13, startCol = 1,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0("Enero 2014 - ",meses_enu[mes]," ",anio,"p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=7,col=1,texto = paste0("Enero 2018 - ",meses_enu[mes]," ",anio,"[p]"))
+  
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -1941,18 +1980,26 @@ f5_anacional <- function(directorio,
   Enunciado<-paste0("Nota: Se presentan cambios por actualización de información de parte de las fuentes informantes")
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
                       startRow = (nrow(tabla1)+19), startCol = 1,colNames=FALSE, rowNames=FALSE)
+
   
   filas_pares <- seq(14, nrow(tabla1)+13, by = 2)
   filas_impares <- seq(13, nrow(tabla1)+13, by = 2)
-  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  
+  
+  addStyle(wb, sheet, style=colgr_in, rows = filas_impares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl_in, rows = filas_pares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 5:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 5:ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcgr, rows = filas_impares, cols = ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcbl, rows = filas_pares, cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultblfc, rows = (nrow(tabla1)+13), cols = ncol(tabla1), gridExpand = TRUE)
   
   addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1)+15), cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+15):(nrow(tabla1)+19), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=rowblf, rows = (nrow(tabla1)+15), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+16):(nrow(tabla1)+18), cols = ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1)+19), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrblf, rows = (nrow(tabla1)+19), cols = ncol(tabla1), gridExpand = TRUE)
   
   # 10. Enlace legal Hasta 2001 ---------------------------------------------
   
@@ -2262,9 +2309,8 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(tabla1),
                       startRow = 13, startCol = 1,colNames=FALSE, rowNames=FALSE)
   
-  Enunciado<-paste0("Enero 2001 - ",meses_enu[mes]," ",anio,"p")
-  openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
-                      startRow = 7, startCol = 1,colNames=FALSE, rowNames=FALSE)
+  addSuperSubScriptToCell_general(wb,sheet,row=7,col=1,texto = paste0("Enero 2001 - ",meses_enu[mes]," ",anio,"[p]"))
+  
   
   Enunciado<-paste0("Fecha de publicación ",meses_enu[mes]," de ",anio)
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
@@ -2306,21 +2352,27 @@ f5_anacional <- function(directorio,
   openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
                       startRow = (nrow(tabla1)+24), startCol = 1,colNames=FALSE, rowNames=FALSE)
   
+
+  
   
   filas_pares <- seq(14, nrow(tabla1)+13, by = 2)
   filas_impares <- seq(13, nrow(tabla1)+13, by = 2)
-  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  
+  addStyle(wb, sheet, style=colgr_in, rows = filas_impares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl_in, rows = filas_pares, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, sheet, style=colgr, rows = filas_impares, cols = 5:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=colbl, rows = filas_pares, cols = 5:ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcgr, rows = filas_impares, cols = ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultcbl, rows = filas_pares, cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultbl, rows = (nrow(tabla1)+13), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultblfc, rows = (nrow(tabla1)+13), cols = ncol(tabla1), gridExpand = TRUE)
   
   addStyle(wb, sheet, style=rowbl, rows = (nrow(tabla1)+15), cols = 1:ncol(tabla1), gridExpand = TRUE)
-  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+15):(nrow(tabla1)+24), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=rowblf, rows = (nrow(tabla1)+15), cols = ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultcbl, rows = (nrow(tabla1)+16):(nrow(tabla1)+23), cols = ncol(tabla1), gridExpand = TRUE)
   addStyle(wb, sheet, style=ultrbl, rows = (nrow(tabla1)+24), cols = 1:ncol(tabla1), gridExpand = TRUE)
+  addStyle(wb, sheet, style=ultrblf, rows = (nrow(tabla1)+24), cols = ncol(tabla1), gridExpand = TRUE)
   
-  tabla1$ANO <- as.numeric(tabla1$ANO)
-  tabla1$MES <- as.numeric(tabla1$MES)
   
   # # 8. Desestacionalizacion -------------------------------------------------
   # 
