@@ -54,11 +54,11 @@ addSuperSubScriptToCell_general <- function(wb,
                                             row,
                                             col,
                                             texto,
-                                            size = '10',
+                                            size = '9',
                                             colour = '000000',
-                                            font = 'Arial',
+                                            font = "Segoe UI",
                                             family = '2',
-                                            bold = FALSE,
+                                            bold = TRUE,
                                             italic = FALSE,
                                             underlined = FALSE) {
   
@@ -164,3 +164,148 @@ addSuperSubScriptToCell_general <- function(wb,
   # replace initial text
   wb$sharedStrings[stringToUpdate] <- newString
 }
+
+
+filas_blanco<- function(df) {
+  blank_row <- df[1, ]
+  blank_row[,] <- NA
+  
+  df_with_blank <- df %>%
+    group_by(ORDEN_DEPTO) %>%
+    do(rbind(., blank_row)) 
+  return(df_with_blank)
+}
+
+# Formatos ----------------------------------------------------------------
+
+
+colgr <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  fgFill = "#F2F2F2",
+  bgFill = "#FFFFFF",
+  halign = "center",
+  valign = "center",
+  numFmt = "0.0"
+)
+
+
+colbl <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  fgFill = "#FFFFFF",
+  halign = "center",
+  valign = "center",
+  numFmt = "0.0"
+)
+
+colgr_in <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  fgFill = "#F2F2F2",
+  bgFill = "#FFFFFF",
+  numFmt = "0"
+)
+
+
+colbl_in <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  fgFill = "#FFFFFF",
+  numFmt = "0"
+)    
+ultbl <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Bottom: thin",
+  borderColour = "#000000",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF",
+  halign = "center",
+  valign = "center"
+)
+
+ultblfc <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Bottom: thin, Right: thin",
+  borderColour = "#000000",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF",
+  halign = "center",
+  valign = "center"
+)
+
+ultcgr <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Right",
+  borderColour = "#000000",
+  halign = "center",
+  valign = "center",
+  fgFill = "#F2F2F2",
+  bgFill = "#FFFFFF",
+  numFmt = "0.0"
+)
+
+
+ultcbl <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Right",
+  borderColour = "#000000",
+  halign = "center",
+  valign = "center",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF",
+  numFmt = "0.0"
+)
+
+rowbl <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Top",
+  borderColour = "#000000",
+  halign = "left",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF"
+)
+
+rowblf <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border ="Top: thin, Right: thin",
+  borderColour = "#000000",
+  halign = "left",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF"
+)  
+
+ultrbl <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Bottom: thin",
+  borderColour = "#000000",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF",
+)
+ultrblf <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 9,
+  fontColour = "#000000",
+  border = "Bottom: thin, Right: thin",
+  borderColour = "#000000",
+  fgFill = "#FFFFFF",
+  bgFill = "#FFFFFF",
+)  

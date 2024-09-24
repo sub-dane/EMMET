@@ -301,14 +301,6 @@ f5_anacional <- function(directorio,
   Salida<-paste0(directorio,"/results/S5_anexos/anexos_nacional_emmet_",meses[mes],"_",anio,".xlsx")
   
   
-  temp <- unlist(str_split(Salida, pattern = "/"))
-  Salida2 <- paste(temp[-length(temp)], collapse="/")
-  temp2 <- unlist(str_split(formato, pattern = "/"))
-  temp2 <- temp2[length(temp2)]
-  temp <- temp[length(temp)]
-  file.copy(formato,Salida2)
-  file.rename(file.path(Salida2,temp2),file.path(Salida2,temp))
-  
   
   # Limpieza de nombres de variable -----------------------------------------
   
@@ -330,147 +322,11 @@ f5_anacional <- function(directorio,
   
   # Se carga el formato de excel --------------------------------------------
   
-  wb <- openxlsx::loadWorkbook(Salida)
-  sheets <- getSheetNames(Salida)
-  #names(wb)
-  
-  #Estilos
-  #num_formato <- createStyle(numFmt = "0.0")
-  #boldStyle <- createStyle(textDecoration = "bold")
-  
-  
-  # Formatos ----------------------------------------------------------------
-  
-  
-  colgr <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    fgFill = "#F2F2F2",
-    bgFill = "#FFFFFF",
-    halign = "center",
-    valign = "center",
-    numFmt = "0.0"
-  )
-  
-  
-  colbl <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    fgFill = "#FFFFFF",
-    halign = "center",
-    valign = "center",
-    numFmt = "0.0"
-  )
+  wb <- openxlsx::loadWorkbook(formato)
+  sheets <- getSheetNames(formato)
 
-  colgr_in <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    fgFill = "#F2F2F2",
-    bgFill = "#FFFFFF"
-  )
   
-  
-  colbl_in <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    fgFill = "#FFFFFF"
-  )    
-    ultbl <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Bottom: thin",
-    borderColour = "#000000",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF",
-    halign = "center",
-    valign = "center"
-  )
-  
-  ultblfc <- createStyle(
-      fontName = "Segoe UI",
-      fontSize = 9,
-      fontColour = "#000000",
-      border = "Bottom: thin, Right: thin",
-      borderColour = "#000000",
-      fgFill = "#FFFFFF",
-      bgFill = "#FFFFFF",
-      halign = "center",
-      valign = "center"
-    )
-  
-  ultcgr <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Right",
-    borderColour = "#000000",
-    halign = "center",
-    valign = "center",
-    fgFill = "#F2F2F2",
-    bgFill = "#FFFFFF",
-    numFmt = "0.0"
-  )
-  
-  
-  ultcbl <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Right",
-    borderColour = "#000000",
-    halign = "center",
-    valign = "center",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF",
-    numFmt = "0.0"
-  )
-  
-  rowbl <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Top",
-    borderColour = "#000000",
-    halign = "left",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF"
-  )
 
-  rowblf <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border ="Top: thin, Right: thin",
-    borderColour = "#000000",
-    halign = "left",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF"
-  )  
-  
-  ultrbl <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Bottom: thin",
-    borderColour = "#000000",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF",
-  )
-  ultrblf <- createStyle(
-    fontName = "Segoe UI",
-    fontSize = 9,
-    fontColour = "#000000",
-    border = "Bottom: thin, Right: thin",
-    borderColour = "#000000",
-    fgFill = "#FFFFFF",
-    bgFill = "#FFFFFF",
-  )  
-  
   # Funcion -----------------------------------------------------------------
   
   
@@ -1811,8 +1667,8 @@ if(mes==12){
   tabla1$DOMINIO_39 <- ifelse(tabla1$DOMINIO_39=="T_IND",paste0(0,tabla1$DOMINIO_39),tabla1$DOMINIO_39)
   tabla1<-tabla1 %>% arrange(DOMINIO_39,ANIO,MES)
   tabla1$DOMINIO_39 <- ifelse(tabla1$DOMINIO_39=="0T_IND",substr(tabla1$DOMINIO_39,2,nchar(tabla1$DOMINIO_39)),tabla1$DOMINIO_39)
-  tabla1_7 <- tabla1
-  
+  tabla1_7 <- as.data.frame(tabla1)
+
   #Exportar
   
   sheet <- sheets[9]
@@ -1949,8 +1805,6 @@ if(mes==12){
   tabla1<-tabla1 %>% arrange(DOMINIOS)
   tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="0T_IND",substr(tabla1$DOMINIOS,2,nchar(tabla1$DOMINIOS)),tabla1$DOMINIOS)
   
-  tabla1$ANO <- as.character(tabla1$ANO)
-  tabla1$MES <- as.character(tabla1$MES)
   
   #Exportar
   
@@ -2298,10 +2152,7 @@ if(mes==12){
   tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="T_IND",paste0(0,tabla1$DOMINIOS),tabla1$DOMINIOS)
   tabla1<-tabla1 %>% arrange(DOMINIOS,ANO,MES)
   tabla1$DOMINIOS <- ifelse(tabla1$DOMINIOS=="0T_IND",substr(tabla1$DOMINIOS,2,nchar(tabla1$DOMINIOS)),tabla1$DOMINIOS)
-  
-  tabla1$ANO <- as.character(tabla1$ANO)
-  tabla1$MES <- as.character(tabla1$MES)
-  
+
   #Exportar
   
   #names(sheets)
@@ -2776,7 +2627,14 @@ if(mes==12){
   # openxlsx::writeData(wb,sheet,as.data.frame(Enunciado),
   #                     startRow = 57, startCol = 1,colNames=FALSE, rowNames=FALSE)
   # 
-  # Guardar archivo de salida -----------------------------------------------
+ 
+
+# contenido ---------------------------------------------------------------
+  sheet=sheets[1]
+  addSuperSubScriptToCell_general(wb,sheet,row=7,col=2,texto = paste0(meses_enu[mes]," ",anio,"[p]"))
+  
+  
+   # Guardar archivo de salida -----------------------------------------------
   
   openxlsx::saveWorkbook(wb,Salida,overwrite = TRUE)
 

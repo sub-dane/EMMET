@@ -240,8 +240,7 @@ f4_tematica <- function(directorio,mes,anio){
 
 
   base_tematica<-base_tematica(base_panel2)
-  base_tematica           <-  base_tematica %>%
-    mutate_at(vars("DOMINIO39_DESCRIP"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
+
 
   write.csv(base_tematica,paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),row.names=F,fileEncoding ="latin1")
 

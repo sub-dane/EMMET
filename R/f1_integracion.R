@@ -120,6 +120,7 @@ base_panel <- base_parametrica %>%
   left_join(base_logistica %>% select(!c(NOMBRE_ESTABLECIMIENTO,DEPARTAMENTO)),
             by=c("ID_NUMORD"="NORDEST","ANIO"="ANIO","MES"="MES"))
 base_panel$DOMINIO_39.x=base_panel$DOMINIO_39.y
+base_panel$DOMINIO39_DESCRIP=base_panel$DESCRIPCIONDOMINIOEMMET39
 base_panel <- base_panel %>%
   rename_with(~ gsub("\\.x$", "", .), ends_with(".x")) %>%
   select(-ends_with(".y")) %>% 
@@ -129,8 +130,6 @@ base_panel <- base_panel %>%
 base_panel           <-  base_panel %>%
   mutate_at(vars(contains("OBSER")),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 
-base_panel           <-  base_panel %>%
-  mutate_at(vars("DOMINIO39_DESCRIP"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 
 base_panel           <-  base_panel %>%
   mutate_at(vars("NOMBRE_ESTABLECIMIENTO"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
