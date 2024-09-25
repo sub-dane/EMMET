@@ -2631,7 +2631,7 @@ if(mes==12){
 
 # contenido ---------------------------------------------------------------
   sheet=sheets[1]
-  addSuperSubScriptToCell_general(wb,sheet,row=7,col=2,texto = paste0(meses_enu[mes]," ",anio,"[p]"))
+  addSuperSubScriptToCell_general(wb,sheet,row=7,col=1,texto = paste0(meses_enu[mes]," ",anio,"[p]"))
   
   
    # Guardar archivo de salida -----------------------------------------------
