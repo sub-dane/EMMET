@@ -304,8 +304,8 @@ f6_aterritorial <- function(directorio,
   
   # Se carga el formato de excel --------------------------------------------
   
-  wb <- openxlsx::loadWorkbook(Salida)
-  sheets <- getSheetNames(Salida)
+  wb <- openxlsx::loadWorkbook(formato)
+  sheets <- getSheetNames(formato)
  
   
   # Funciones ---------------------------------------------------------------
