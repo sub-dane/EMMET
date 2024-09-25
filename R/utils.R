@@ -1,5 +1,5 @@
 #utils
-
+library(openxlsx)
 
 #crea un vector con los meses
 meses <- c("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
