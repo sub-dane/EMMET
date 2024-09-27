@@ -4,7 +4,7 @@
 \alias{f0_inicial}
 \title{Función inicial}
 \usage{
-f0_inicial(directorio)
+f0_inicial(directorio, mes, anio)
 }
 \arguments{
 \item{directorio}{definir el directorio donde se crearan las carpetas.}

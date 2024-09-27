@@ -4,14 +4,14 @@
 \alias{f7_cdominios}
 \title{Cuadros desagregaion dominios}
 \usage{
-f7_cdominios(directorio, ani, mes)
+f7_cdominios(directorio, anio, mes)
 }
 \arguments{
 \item{directorio}{definir el directorio donde se encuentran ubicado los datos de entrada}
 
-\item{mes}{Definir el mes a ejecutar, ej: 11}
-
 \item{anio}{Definir el año a ejecutar, ej: 2022}
+
+\item{mes}{Definir el mes a ejecutar, ej: 11}
 }
 \value{
 CSV file
@@ -26,7 +26,7 @@ Adicionalmente se crea una hoja en donde se presentan los valores de defalctores
 y se calcula la variación anual y mensual por cada dominio.
 }
 \details{
-Esta funcion se hace con la finalidad de crear cuadros informativos
+Esta funcion se hace con la finalidad de crear cuadros informativos 
 con datos desagregada según el interés, para facilitar el análisis del comportamiento
 de cada secotr del dominio.
 }

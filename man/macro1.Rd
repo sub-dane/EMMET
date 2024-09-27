@@ -19,7 +19,7 @@ archivo llamado por ejemplo: "EMMET_PANEL_alertas_nov2022.csv", si el avance es 
 "EMMET_PANEL_alertas_nov2022_50.csv" indicando que es el 50\% de la base}
 }
 \description{
-Con esta función realizaremos la primera parte del proceso, en donde se correran las 4
+Con esta función realizaremos la primera parte del proceso, en donde se correran las 3
 primeras funciones.
 }
 \details{

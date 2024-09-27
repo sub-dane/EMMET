@@ -4,14 +4,14 @@
 \alias{f8_cregiones}
 \title{Cuadros desagregaion regiones}
 \usage{
-f8_cregiones(directorio, ani, mes)
+f8_cregiones(directorio, anio, mes)
 }
 \arguments{
 \item{directorio}{definir el directorio donde se encuentran ubicado los datos de entrada}
 
-\item{mes}{Definir el mes a ejecutar, ej: 11}
-
 \item{anio}{Definir el año a ejecutar, ej: 2022}
+
+\item{mes}{Definir el mes a ejecutar, ej: 11}
 }
 \value{
 CSV file
@@ -23,7 +23,7 @@ una hoja por cada desagregación en donde se consigna las variaciones y contribu
 de produccion, ventas, emppleados, sueldos y horas.
 }
 \details{
-Esta funcion se hace con la finalidad de crear cuadros informativos
+Esta funcion se hace con la finalidad de crear cuadros informativos 
 con datos desagregada según el interés, para facilitar el análisis del comportamiento
 de cada región.
 }
