@@ -25,7 +25,7 @@
 #' 
 #'  
 
-Cuadros_Dominios<-function(directorio,anio,mes){
+f7_cdominios<-function(directorio,anio,mes){
   
   # Librerias ---------------------------------------------------------------
   

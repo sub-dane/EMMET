@@ -24,7 +24,7 @@
 #'  
 
 
-Cuadros_regiones<-function(directorio,anio,mes){
+f8_cregiones<-function(directorio,anio,mes){
   # Librerias ---------------------------------------------------------------
   
   library(readxl)
