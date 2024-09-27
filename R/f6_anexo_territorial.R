@@ -261,12 +261,14 @@ f6_aterritorial <- function(directorio,
   library(tidyr)
   library(scales)
   library(kableExtra)
+  library(stringr)
   library(lubridate)
   library(formattable)
   library("htmltools")
   library("webshot")
   library(openxlsx)
   library(DT)
+  library(purrr)
   library(data.table)
 
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
@@ -2224,7 +2226,7 @@ f6_aterritorial <- function(directorio,
   # contenido ---------------------------------------------------------------
   sheet=sheets[1]
   addSuperSubScriptToCell_general(wb,sheet,row=7,col=2,texto = paste0(meses_enu[mes]," ",anio,"[p]"))
-  
+  addStyle(wb,sheet,conte,rows = 7,cols = 2)  
   # Guardar archivo de salida -----------------------------------------------
   
   openxlsx::saveWorkbook(wb,Salida,overwrite = TRUE)

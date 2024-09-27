@@ -177,7 +177,14 @@ filas_blanco<- function(df) {
 }
 
 # Formatos ----------------------------------------------------------------
-
+conte <- createStyle(
+  fontName = "Segoe UI",
+  fontSize = 14,
+  fontColour = "#000000",
+  halign = "center",
+  valign = "center",
+  textDecoration = "bold"
+)
 
 colgr <- createStyle(
   fontName = "Segoe UI",

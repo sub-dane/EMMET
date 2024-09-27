@@ -2632,7 +2632,7 @@ if(mes==12){
 # contenido ---------------------------------------------------------------
   sheet=sheets[1]
   addSuperSubScriptToCell_general(wb,sheet,row=7,col=1,texto = paste0(meses_enu[mes]," ",anio,"[p]"))
-  
+  addStyle(wb,sheet,conte,rows = 7,cols = 1)  
   
    # Guardar archivo de salida -----------------------------------------------
   
