@@ -25,7 +25,7 @@
 #' 
 #'  
 
-f7_cdominios<-function(directorio,anio,mes){
+f7_cdominios<-function(directorio,mes,anio){
   
   # Librerias ---------------------------------------------------------------
   
@@ -38,11 +38,9 @@ f7_cdominios<-function(directorio,anio,mes){
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   
   # Cargar bases y variables ------------------------------------------------
-
-  meses <- c("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
   
-  data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
-  colnames(data) <- colnames_format(data)
+data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+colnames(data) <- colnames_format(data)
   
   num_cols <- sapply(data, is.numeric)
   data[num_cols] <- lapply(data[num_cols], function(x) { x[is.na(x)] <- 0; x })
@@ -72,11 +70,11 @@ f7_cdominios<-function(directorio,anio,mes){
   
   directorio_hoja <- data %>% 
     filter((ANIO==anio & MES==mes)) %>% 
-    select(ID_NUMORD,NUMEMP,NOVEDAD,NOMBRE_ESTAB,EMMET_CLASE,DOMINIO_39,INCLUSION_NOMBRE_DEPTO,
+    select(NORDEST,NOVEDAD,NOMBRE_ESTABLECIMIENTO,EMMET_CLASE,DOMINIO_39,INCLUSION_NOMBRE_DEPTO,
            AREA_METROPOLITANA,CIUDAD)
   
   directorio_hoja <- directorio_hoja %>% 
-    rename(Nordes=ID_NUMORD,
+    rename(Nordes=NORDEST,
            Nov=NOVEDAD,
            Departamento=INCLUSION_NOMBRE_DEPTO)
   
@@ -178,10 +176,10 @@ f7_cdominios<-function(directorio,anio,mes){
   #Funcion 
   cont_Dominios <- function(varia_int){
     prod_cont <- data %>% 
-      select(ANIO,MES,DOMINIO_39,DESCRIPCIONDOMINIOEMMET39,{{varia_int}})
+      select(ANIO,MES,DOMINIO_39,DOMINIO39_DESCRIP,{{varia_int}})
     
     prod_cont <- prod_cont %>%
-      group_by(ANIO,MES,DOMINIO_39,DESCRIPCIONDOMINIOEMMET39) %>% 
+      group_by(ANIO,MES,DOMINIO_39,DOMINIO39_DESCRIP) %>% 
       summarise(PRODREAL=sum({{varia_int}}))
     
     prod_cont <- prod_cont %>% 
@@ -191,7 +189,7 @@ f7_cdominios<-function(directorio,anio,mes){
       select(ANIO,MES,{{varia_int}}) %>% 
       group_by(ANIO,MES) %>% 
       summarise(DOMINIO_39=000,
-                DESCRIPCIONDOMINIOEMMET39="Total Industria",
+                DOMINIO39_DESCRIP="Total Industria",
                 TOTAL=sum({{varia_int}}))
     T_IND$ANIO <- as.character(T_IND$ANIO)
     
@@ -211,7 +209,7 @@ f7_cdominios<-function(directorio,anio,mes){
     }
     
     prod_cont_ori <- prod_cont %>% 
-      select(MES,DOMINIO_39,DESCRIPCIONDOMINIOEMMET39,c(as.character(2018:anio)))
+      select(MES,DOMINIO_39,DOMINIO39_DESCRIP,c(as.character(2018:anio)))
     n=ncol(prod_cont_ori)
     
     T_IND <- data %>% 
@@ -244,7 +242,7 @@ f7_cdominios<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>% 
-      select(MES,DOMINIO_39,DESCRIPCIONDOMINIOEMMET39,matches("^cont"))
+      select(MES,DOMINIO_39,DOMINIO39_DESCRIP,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>% 
       pivot_longer(cols = 4:ncol(prod_cont_ori),
@@ -262,7 +260,7 @@ f7_cdominios<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>% 
-      select(MES,DOMINIO_39,DESCRIPCIONDOMINIOEMMET39,!c(as.character(2018:anio)))
+      select(MES,DOMINIO_39,DOMINIO39_DESCRIP,!c(as.character(2018:anio)))
     
     prod_cont_var <- prod_cont_var %>% 
       pivot_longer(cols = 4:ncol(prod_cont_var),
@@ -279,7 +277,7 @@ f7_cdominios<-function(directorio,anio,mes){
       pivot_wider(names_from = ANIO_MES, values_from = VARIACION)
     
     prod_cont <- prod_cont_var %>% 
-      left_join(prod_cont_ori, by=c("DOMINIO_39"="DOMINIO_39","DESCRIPCIONDOMINIOEMMET39"="DESCRIPCIONDOMINIOEMMET39"))
+      left_join(prod_cont_ori, by=c("DOMINIO_39"="DOMINIO_39","DOMINIO39_DESCRIP"="DOMINIO39_DESCRIP"))
     
     prod_cont <- prod_cont_ori <- prod_cont[, colSums(is.na(prod_cont)) != nrow(prod_cont)]
   }
@@ -294,7 +292,7 @@ f7_cdominios<-function(directorio,anio,mes){
   
   vent_cont <- cont_Dominios(VENTASREALESPOND)
   
-  vent_cont <- vent_cont[,c("DOMINIO_39","DESCRIPCIONDOMINIOEMMET39",
+  vent_cont <- vent_cont[,c("DOMINIO_39","DOMINIO39_DESCRIP",
                             paste0("var_",anio_inte,"_",mes_inte),
                             paste0("var_",anio,"_",mes),
                             paste0("cont_",anio_inte,"_",mes_inte),
@@ -311,7 +309,7 @@ f7_cdominios<-function(directorio,anio,mes){
   
   emp_cont <- cont_Dominios(PERSONAL)
   
-  emp_cont <- emp_cont[,c("DOMINIO_39","DESCRIPCIONDOMINIOEMMET39",
+  emp_cont <- emp_cont[,c("DOMINIO_39","DOMINIO39_DESCRIP",
                           paste0("var_",anio_inte,"_",mes_inte),
                           paste0("var_",anio,"_",mes),
                           paste0("cont_",anio_inte,"_",mes_inte),
@@ -325,13 +323,13 @@ f7_cdominios<-function(directorio,anio,mes){
   
   Cont_Dominios <- prod_cont %>% 
     left_join(vent_cont, by=c("DOMINIO_39_prod"="DOMINIO_39_vent",
-                              "DESCRIPCIONDOMINIOEMMET39_prod"="DESCRIPCIONDOMINIOEMMET39_vent")) %>% 
+                              "DOMINIO39_DESCRIP_prod"="DOMINIO39_DESCRIP_vent")) %>% 
     left_join(emp_cont,by=c("DOMINIO_39_prod"="DOMINIO_39_emp",
-                            "DESCRIPCIONDOMINIOEMMET39_prod"="DESCRIPCIONDOMINIOEMMET39_emp"))
+                            "DOMINIO39_DESCRIP_prod"="DOMINIO39_DESCRIP_emp"))
   
   Cont_Dominios <- Cont_Dominios %>% 
     rename(DOMINIO_39=DOMINIO_39_prod,
-           DESCRIPCION=DESCRIPCIONDOMINIOEMMET39_prod)
+           DESCRIPCION=DOMINIO39_DESCRIP_prod)
   
   Cont_Dominios <- Cont_Dominios %>% 
     arrange(DOMINIO_39)
@@ -364,12 +362,12 @@ f7_cdominios<-function(directorio,anio,mes){
   
   Dominios <- function (dominio,var_inte){
     dominio_inte <- data %>% 
-      select(NOMBRE_ESTAB,ANIO,MES, DOMINIO_39,ORDEN_DEPTO,CLASE_CIIU4,NOVEDAD,
-             ID_NUMORD,{{var_inte}}) %>% 
+      select(NOMBRE_ESTABLECIMIENTO,ANIO,MES, DOMINIO_39,ORDEN_DEPTO,CLASE_CIIU4,NOVEDAD,
+             NORDEST,{{var_inte}}) %>% 
       filter(DOMINIO_39==dominio) 
     
     prod_cont <- dominio_inte  %>%
-      group_by(ANIO,MES,ID_NUMORD) %>% 
+      group_by(ANIO,MES,NORDEST) %>% 
       summarise(PRODREAL=sum({{var_inte}}))
     
     prod_cont <- prod_cont %>% 
@@ -380,7 +378,7 @@ f7_cdominios<-function(directorio,anio,mes){
     T_IND <- dominio_inte %>% 
       select(ANIO,MES,{{var_inte}}) %>% 
       group_by(ANIO,MES) %>% 
-      summarise(ID_NUMORD=000,
+      summarise(NORDEST=000,
                 TOTAL=sum({{var_inte}}))
     T_IND$ANIO <- as.character(T_IND$ANIO)
     
@@ -402,7 +400,7 @@ f7_cdominios<-function(directorio,anio,mes){
     }
     
     prod_cont_ori <- prod_cont %>% 
-      select(MES,ID_NUMORD,!matches("^var"))
+      select(MES,NORDEST,!matches("^var"))
     n=ncol(prod_cont_ori)
     
     T_IND <- dominio_inte %>% 
@@ -437,7 +435,7 @@ f7_cdominios<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>% 
-      select(MES,ID_NUMORD,matches("^cont"))
+      select(MES,NORDEST,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>% 
       pivot_longer(cols = 3:ncol(prod_cont_ori),
@@ -455,7 +453,7 @@ f7_cdominios<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>% 
-      select(MES,ID_NUMORD,matches("^var"))
+      select(MES,NORDEST,matches("^var"))
     
     prod_cont_var <- prod_cont_var %>% 
       pivot_longer(cols = 3:ncol(prod_cont_var),
@@ -491,13 +489,13 @@ f7_cdominios<-function(directorio,anio,mes){
     
     
     prod_cont_fin <- prod_cont %>% 
-      left_join(prod_cont_var, by=c("ID_NUMORD"="ID_NUMORD"))
+      left_join(prod_cont_var, by=c("NORDEST"="NORDEST"))
     
     prod_cont_fin <- prod_cont_fin %>% 
-      left_join(prod_cont_ori, by=c("ID_NUMORD"="ID_NUMORD"))
+      left_join(prod_cont_ori, by=c("NORDEST"="NORDEST"))
     
     
-    prod_cont_fin <- prod_cont_fin[,c("ID_NUMORD",
+    prod_cont_fin <- prod_cont_fin[,c("NORDEST",
                                       paste0(anio_inte-1,"_",mes_inte),
                                       paste0(anio_inte,"_",mes_inte),
                                       paste0(anio-1,"_",mes),
@@ -514,35 +512,35 @@ f7_cdominios<-function(directorio,anio,mes){
       select(!c(matches("^var"),matches("^cont"),matches("^DIF"))) %>% 
       left_join(vent_dom %>% 
                   select(!c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_vent")) %>% 
+                by=c("NORDEST_prod"="NORDEST_vent")) %>% 
       left_join(emp_dom %>%select(!c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_emp")) %>% 
+                by=c("NORDEST_prod"="NORDEST_emp")) %>% 
       left_join(sueld_dom %>%select(!c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_sueld")) %>% 
+                by=c("NORDEST_prod"="NORDEST_sueld")) %>% 
       left_join(horas_dom %>%select(!c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_horas")) %>% 
-      left_join(prod_dom %>%select(ID_NUMORD_prod,c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_prod")) %>% 
-      left_join(vent_dom %>% select(ID_NUMORD_vent,c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_vent")) %>% 
-      left_join(emp_dom %>% select(ID_NUMORD_emp,c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_emp")) %>% 
-      left_join(sueld_dom %>% select(ID_NUMORD_sueld,c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_sueld")) %>% 
-      left_join(horas_dom %>% select(ID_NUMORD_horas,c(matches("^var"),matches("^cont"),matches("^DIF"))),
-                by=c("ID_NUMORD_prod"="ID_NUMORD_horas"))
+                by=c("NORDEST_prod"="NORDEST_horas")) %>% 
+      left_join(prod_dom %>%select(NORDEST_prod,c(matches("^var"),matches("^cont"),matches("^DIF"))),
+                by=c("NORDEST_prod"="NORDEST_prod")) %>% 
+      left_join(vent_dom %>% select(NORDEST_vent,c(matches("^var"),matches("^cont"),matches("^DIF"))),
+                by=c("NORDEST_prod"="NORDEST_vent")) %>% 
+      left_join(emp_dom %>% select(NORDEST_emp,c(matches("^var"),matches("^cont"),matches("^DIF"))),
+                by=c("NORDEST_prod"="NORDEST_emp")) %>% 
+      left_join(sueld_dom %>% select(NORDEST_sueld,c(matches("^var"),matches("^cont"),matches("^DIF"))),
+                by=c("NORDEST_prod"="NORDEST_sueld")) %>% 
+      left_join(horas_dom %>% select(NORDEST_horas,c(matches("^var"),matches("^cont"),matches("^DIF"))),
+                by=c("NORDEST_prod"="NORDEST_horas"))
     
     
     dominio_fin <- dominio %>% 
-      left_join(nomb_estab, by=c("ID_NUMORD_prod"="ID_NUMORD")) %>% 
-      select("NOMBRE_ESTAB","NOMBREDPTO","CLASE_CIIU4","NOVEDAD","ID_NUMORD_prod",colnames(dominio)[-1])
+      left_join(nomb_estab, by=c("NORDEST_prod"="NORDEST")) %>% 
+      select("NOMBRE_ESTABLECIMIENTO","DEPARTAMENTO","CLASE_CIIU4","NOVEDAD","NORDEST_prod",colnames(dominio)[-1])
     
     dominio_fin <- dominio_fin %>% 
-      arrange(ID_NUMORD_prod)
+      arrange(NORDEST_prod)
     
     dominio_fin <- dominio_fin %>% 
-      rename(Nombre=NOMBRE_ESTAB,
-             Departamento=NOMBREDPTO,
+      rename(Nombre=NOMBRE_ESTABLECIMIENTO,
+             Departamento=DEPARTAMENTO,
              CIIU=CLASE_CIIU4,
              Nov=NOVEDAD)
     
@@ -584,12 +582,12 @@ f7_cdominios<-function(directorio,anio,mes){
   
   
   data <- data %>% 
-    group_by(ANIO,MES,ID_NUMORD,DOMINIO_39) %>% 
+    group_by(ANIO,MES,NORDEST,DOMINIO_39) %>% 
     mutate(PERSONAL=sum(TOTALEMPLEOADMON+TOTALEMPLEOPRODUC))
   
   nomb_estab <- data %>% 
     filter((ANIO==anio & MES==mes)) %>% 
-    select(ID_NUMORD,NOMBRE_ESTAB,NOMBREDPTO,CLASE_CIIU4,NOVEDAD) 
+    select(NORDEST,NOMBRE_ESTABLECIMIENTO,DEPARTAMENTO,CLASE_CIIU4,NOVEDAD) 
   
   
   
@@ -605,7 +603,7 @@ f7_cdominios<-function(directorio,anio,mes){
     vent_dom["DIFERENCIA"] <- vent_dom[,ncol(vent_dom)]-vent_dom[,(ncol(vent_dom)-1)]
     colnames(vent_dom) <- paste0(names(vent_dom),"_vent")
     
-    emp_dom <- Dominios(i,II_TOT_TOT_PERS)
+    emp_dom <- Dominios(i,TOTPERS)
     emp_dom["DIFERENCIA"] <- emp_dom[,ncol(emp_dom)]-emp_dom[,(ncol(emp_dom)-1)]
     colnames(emp_dom) <- paste0(names(emp_dom),"_emp")
     
@@ -613,7 +611,7 @@ f7_cdominios<-function(directorio,anio,mes){
     sueld_dom["DIFERENCIA"] <- sueld_dom[,ncol(sueld_dom)]-sueld_dom[,(ncol(sueld_dom)-1)]
     colnames(sueld_dom) <- paste0(names(sueld_dom),"_sueld")
     
-    horas_dom <- Dominios(i,TOTALHORAS)
+    horas_dom <- Dominios(i,TOTAL_HORAS)
     horas_dom["DIFERENCIA"] <- horas_dom[,ncol(horas_dom)]-horas_dom[,(ncol(horas_dom)-1)]
     colnames(horas_dom) <- paste0(names(horas_dom),"_horas")
     

@@ -24,7 +24,7 @@
 #'  
 
 
-f8_cregiones<-function(directorio,anio,mes){
+f8_cregiones<-function(directorio,mes,anio){
   # Librerias ---------------------------------------------------------------
   
   library(readxl)
@@ -45,23 +45,19 @@ f8_cregiones<-function(directorio,anio,mes){
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   
   # Cargar bases y variables ------------------------------------------------
-  
-  meses <- c("ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic")
-
-  
-  data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
-  colnames(data) <- colnames_format(data)
+data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+colnames(data) <- colnames_format(data)
   
   num_cols <- sapply(data, is.numeric)
   data[num_cols] <- lapply(data[num_cols], function(x) { x[is.na(x)] <- 0; x })
   
   data <- data %>% 
-    group_by(ANIO,MES,ID_NUMORD,DOMINIO_39) %>% 
+    group_by(ANIO,MES,NORDEST,DOMINIO_39) %>% 
     mutate(PERSONAL=sum(TOTALEMPLEOPERMANENTE+TOTALEMPLEOTEMPORAL))
   
   nomb_estab <- data %>% 
     filter((ANIO==anio & MES==mes)) %>% 
-    select(ID_NUMORD,NOMBRE_ESTAB,CLASE_CIIU4,NOVEDAD) 
+    select(NORDEST,NOMBRE_ESTABLECIMIENTO,CLASE_CIIU4,NOVEDAD) 
   
   
   if(mes==1){
@@ -456,12 +452,12 @@ f8_cregiones<-function(directorio,anio,mes){
   
   Estab <- function(var_inte){
     agreg_inte <- data %>%
-      select(ANIO,MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
+      select(ANIO,MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
              ORDENDOMINDEPTO,AGREG_DOMINIO_REG,{{var_inte}})
     
     
     prod_cont <- agreg_inte %>%
-      group_by(ANIO,MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
+      group_by(ANIO,MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
                ORDENDOMINDEPTO,AGREG_DOMINIO_REG) %>%
       summarise(PRODREAL=sum({{var_inte}}))
     
@@ -475,7 +471,7 @@ f8_cregiones<-function(directorio,anio,mes){
       select(ANIO,MES,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
              ORDENDOMINDEPTO,AGREG_DOMINIO_REG,{{var_inte}}) %>%
       group_by(ANIO,MES) %>%
-      summarise(ID_NUMORD=0,
+      summarise(NORDEST=0,
                 ORDEN_DEPTO=0,
                 INCLUSION_NOMBRE_DEPTO="T_IND",
                 ORDENDOMINDEPTO=0,
@@ -514,7 +510,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND <- T_IND %>%
       pivot_wider(names_from = ANIO, values_from = TOTAL)
     
-    T_IND <- rbind(T_IND,(T_IND_0 %>% select(!ID_NUMORD)))
+    T_IND <- rbind(T_IND,(T_IND_0 %>% select(!NORDEST)))
     
     colnames(T_IND) <- paste0(names(T_IND),"_T")
     
@@ -539,7 +535,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>%
-      select(MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
+      select(MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
              ORDENDOMINDEPTO,AGREG_DOMINIO_REG,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>%
@@ -558,7 +554,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>%
-      select(MES,ID_NUMORD,INCLUSION_NOMBRE_DEPTO,AGREG_DOMINIO_REG,matches("^var"))
+      select(MES,NORDEST,INCLUSION_NOMBRE_DEPTO,AGREG_DOMINIO_REG,matches("^var"))
     
     prod_cont_var <- prod_cont_var %>%
       pivot_longer(cols = 7:ncol(prod_cont_var),
@@ -575,14 +571,14 @@ f8_cregiones<-function(directorio,anio,mes){
       pivot_wider(names_from = ANIO_MES, values_from = VARIACION)
     
     prod_cont_fin <- prod_cont_var %>%
-      left_join(prod_cont_ori, by=c("ID_NUMORD"="ID_NUMORD",
+      left_join(prod_cont_ori, by=c("NORDEST"="NORDEST",
                                     "ORDEN_DEPTO"="ORDEN_DEPTO",
                                     "INCLUSION_NOMBRE_DEPTO"="INCLUSION_NOMBRE_DEPTO",
                                     "ORDENDOMINDEPTO"="ORDENDOMINDEPTO",
                                     "AGREG_DOMINIO_REG"="AGREG_DOMINIO_REG"))
     
     
-    prod_cont_fin <- prod_cont_fin[,c("ID_NUMORD",
+    prod_cont_fin <- prod_cont_fin[,c("NORDEST",
                                       "ORDEN_DEPTO","INCLUSION_NOMBRE_DEPTO",
                                       "ORDENDOMINDEPTO","AGREG_DOMINIO_REG",
                                       paste0("var_",anio_inte,"_",mes_inte),
@@ -620,22 +616,22 @@ f8_cregiones<-function(directorio,anio,mes){
   
   
   Por_estable <- prod_estab %>% 
-    left_join(vent_estab,by=c("ID_NUMORD_prod"="ID_NUMORD_vent",
+    left_join(vent_estab,by=c("NORDEST_prod"="NORDEST_vent",
                               "ORDEN_DEPTO_prod"="ORDEN_DEPTO_vent",
                               "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_vent",
                               "ORDENDOMINDEPTO_prod"="ORDENDOMINDEPTO_vent",
                               "AGREG_DOMINIO_REG_prod"="AGREG_DOMINIO_REG_vent")) %>% 
-    left_join(emp_estab,by=c("ID_NUMORD_prod"="ID_NUMORD_emp",
+    left_join(emp_estab,by=c("NORDEST_prod"="NORDEST_emp",
                              "ORDEN_DEPTO_prod"="ORDEN_DEPTO_emp",
                              "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_emp",
                              "ORDENDOMINDEPTO_prod"="ORDENDOMINDEPTO_emp",
                              "AGREG_DOMINIO_REG_prod"="AGREG_DOMINIO_REG_emp")) %>% 
-    left_join(sueld_estab,by=c("ID_NUMORD_prod"="ID_NUMORD_sueld",
+    left_join(sueld_estab,by=c("NORDEST_prod"="NORDEST_sueld",
                                "ORDEN_DEPTO_prod"="ORDEN_DEPTO_sueld",
                                "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_sueld",
                                "ORDENDOMINDEPTO_prod"="ORDENDOMINDEPTO_sueld",
                                "AGREG_DOMINIO_REG_prod"="AGREG_DOMINIO_REG_sueld")) %>% 
-    left_join(horas_estab,by=c("ID_NUMORD_prod"="ID_NUMORD_horas",
+    left_join(horas_estab,by=c("NORDEST_prod"="NORDEST_horas",
                                "ORDEN_DEPTO_prod"="ORDEN_DEPTO_horas",
                                "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_horas",
                                "ORDENDOMINDEPTO_prod"="ORDENDOMINDEPTO_horas",
@@ -644,14 +640,14 @@ f8_cregiones<-function(directorio,anio,mes){
   n_por_est <- colnames(Por_estable)
   
   Por_estable <- Por_estable %>% 
-    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("ID_NUMORD_prod"="ID_NUMORD"))
+    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("NORDEST_prod"="NORDEST"))
   
   Por_estable <- Por_estable %>% 
-    select(ID_NUMORD_prod,NOMBRE_ESTAB,NOVEDAD,CLASE_CIIU4,
+    select(NORDEST_prod,NOMBRE_ESTABLECIMIENTO,NOVEDAD,CLASE_CIIU4,
            DOMINIO_39,c(n_por_est[2:length(n_por_est)])) %>% 
-    arrange(ORDEN_DEPTO_prod,ORDENDOMINDEPTO_prod,ID_NUMORD_prod) %>% 
-    rename(Norden=ID_NUMORD_prod,
-           Nombre=NOMBRE_ESTAB,
+    arrange(ORDEN_DEPTO_prod,ORDENDOMINDEPTO_prod,NORDEST_prod) %>% 
+    rename(Norden=NORDEST_prod,
+           Nombre=NOMBRE_ESTABLECIMIENTO,
            Nov=NOVEDAD,
            EMMET_Clae=CLASE_CIIU4,
            Dom_39=DOMINIO_39,
@@ -857,11 +853,11 @@ f8_cregiones<-function(directorio,anio,mes){
   
   Area_est <- function(var_inte){
     agreg_inte <- data %>%
-      select(ANIO,MES,ID_NUMORD,ORDEN_AREA,AREA_METROPOLITANA,{{var_inte}})
+      select(ANIO,MES,NORDEST,ORDEN_AREA,AREA_METROPOLITANA,{{var_inte}})
     
     
     prod_cont <- agreg_inte %>%
-      group_by(ANIO,MES,ID_NUMORD,ORDEN_AREA,AREA_METROPOLITANA) %>%
+      group_by(ANIO,MES,NORDEST,ORDEN_AREA,AREA_METROPOLITANA) %>%
       summarise(PRODREAL=sum({{var_inte}}))
     
     
@@ -873,7 +869,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND_0 <- data %>%
       select(ANIO,MES,ORDEN_AREA,AREA_METROPOLITANA,{{var_inte}}) %>%
       group_by(ANIO,MES) %>%
-      summarise(ID_NUMORD=0,
+      summarise(NORDEST=0,
                 ORDEN_AREA=0,
                 AREA_METROPOLITANA="Total Industria",
                 TOTAL=sum({{var_inte}}))
@@ -908,7 +904,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND <- T_IND %>%
       pivot_wider(names_from = ANIO, values_from = TOTAL)
     
-    T_IND <- rbind(T_IND,(T_IND_0 %>% select(!ID_NUMORD)))
+    T_IND <- rbind(T_IND,(T_IND_0 %>% select(!NORDEST)))
     
     colnames(T_IND) <- paste0(names(T_IND),"_T")
     
@@ -933,7 +929,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>%
-      select(MES,ID_NUMORD,ORDEN_AREA,AREA_METROPOLITANA,matches("^cont"))
+      select(MES,NORDEST,ORDEN_AREA,AREA_METROPOLITANA,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>%
       pivot_longer(cols = 5:ncol(prod_cont_ori),
@@ -951,7 +947,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>%
-      select(MES,ID_NUMORD,ORDEN_AREA,AREA_METROPOLITANA,matches("^var"))
+      select(MES,NORDEST,ORDEN_AREA,AREA_METROPOLITANA,matches("^var"))
     
     prod_cont_var <- prod_cont_var %>%
       pivot_longer(cols = 5:ncol(prod_cont_var),
@@ -968,12 +964,12 @@ f8_cregiones<-function(directorio,anio,mes){
       pivot_wider(names_from = ANIO_MES, values_from = VARIACION)
     
     prod_cont_fin <- prod_cont_var %>%
-      left_join(prod_cont_ori, by=c("ID_NUMORD"="ID_NUMORD",
+      left_join(prod_cont_ori, by=c("NORDEST"="NORDEST",
                                     "ORDEN_AREA"="ORDEN_AREA",
                                     "AREA_METROPOLITANA"="AREA_METROPOLITANA"))
     
     
-    prod_cont_fin <- prod_cont_fin[,c("ID_NUMORD","ORDEN_AREA",
+    prod_cont_fin <- prod_cont_fin[,c("NORDEST","ORDEN_AREA",
                                       "AREA_METROPOLITANA",
                                       paste0("var_",anio_inte,"_",mes_inte),
                                       paste0("var_",anio,"_",mes),
@@ -1008,16 +1004,16 @@ f8_cregiones<-function(directorio,anio,mes){
   
   
   Area_estable <- prod_areaest %>% 
-    left_join(vent_areaest,by=c("ID_NUMORD_prod"="ID_NUMORD_vent",
+    left_join(vent_areaest,by=c("NORDEST_prod"="NORDEST_vent",
                                 "ORDEN_AREA_prod"="ORDEN_AREA_vent",
                                 "AREA_METROPOLITANA_prod"="AREA_METROPOLITANA_vent")) %>% 
-    left_join(emp_areaest,by=c("ID_NUMORD_prod"="ID_NUMORD_emp",
+    left_join(emp_areaest,by=c("NORDEST_prod"="NORDEST_emp",
                                "ORDEN_AREA_prod"="ORDEN_AREA_emp",
                                "AREA_METROPOLITANA_prod"="AREA_METROPOLITANA_emp")) %>% 
-    left_join(sueld_areaest,by=c("ID_NUMORD_prod"="ID_NUMORD_sueld",
+    left_join(sueld_areaest,by=c("NORDEST_prod"="NORDEST_sueld",
                                  "ORDEN_AREA_prod"="ORDEN_AREA_sueld",
                                  "AREA_METROPOLITANA_prod"="AREA_METROPOLITANA_sueld")) %>% 
-    left_join(horas_areaest,by=c("ID_NUMORD_prod"="ID_NUMORD_horas",
+    left_join(horas_areaest,by=c("NORDEST_prod"="NORDEST_horas",
                                  "ORDEN_AREA_prod"="ORDEN_AREA_horas",
                                  "AREA_METROPOLITANA_prod"="AREA_METROPOLITANA_horas"))
   
@@ -1025,13 +1021,13 @@ f8_cregiones<-function(directorio,anio,mes){
   n_area_est <- colnames(Area_estable)
   
   Area_estable <- Area_estable %>% 
-    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("ID_NUMORD_prod"="ID_NUMORD"))
+    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("NORDEST_prod"="NORDEST"))
   
   Area_estable <- Area_estable %>% 
-    select(ID_NUMORD_prod,NOMBRE_ESTAB,NOVEDAD,CLASE_CIIU4,
+    select(NORDEST_prod,NOMBRE_ESTABLECIMIENTO,NOVEDAD,CLASE_CIIU4,
            DOMINIO_39,c(n_area_est[2:length(n_area_est)])) %>%  
-    rename(Norden=ID_NUMORD_prod,
-           Nombre=NOMBRE_ESTAB,
+    rename(Norden=NORDEST_prod,
+           Nombre=NOMBRE_ESTABLECIMIENTO,
            Nov=NOVEDAD,
            EMMET_Clae=CLASE_CIIU4,
            Dom_39=DOMINIO_39,
@@ -1230,11 +1226,11 @@ f8_cregiones<-function(directorio,anio,mes){
   
   Ciud_est <- function(var_inte){
     agreg_inte <- data %>%
-      select(ANIO,MES,ID_NUMORD,ORDEN_CIUDAD,CIUDAD,{{var_inte}})
+      select(ANIO,MES,NORDEST,ORDEN_CIUDAD,CIUDAD,{{var_inte}})
     
     
     prod_cont <- agreg_inte %>%
-      group_by(ANIO,MES,ID_NUMORD,ORDEN_CIUDAD,CIUDAD) %>%
+      group_by(ANIO,MES,NORDEST,ORDEN_CIUDAD,CIUDAD) %>%
       summarise(PRODREAL=sum({{var_inte}}))
     
     
@@ -1246,7 +1242,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND_0 <- data %>%
       select(ANIO,MES,ORDEN_CIUDAD,CIUDAD,{{var_inte}}) %>%
       group_by(ANIO,MES) %>%
-      summarise(ID_NUMORD=0,
+      summarise(NORDEST=0,
                 ORDEN_CIUDAD=0,
                 CIUDAD="Total Industria",
                 TOTAL=sum({{var_inte}}))
@@ -1281,7 +1277,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND <- T_IND %>%
       pivot_wider(names_from = ANIO, values_from = TOTAL)
     
-    T_IND <- rbind(T_IND,T_IND_0 %>% select(!ID_NUMORD))
+    T_IND <- rbind(T_IND,T_IND_0 %>% select(!NORDEST))
     
     
     colnames(T_IND) <- paste0(names(T_IND),"_T")
@@ -1306,7 +1302,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>%
-      select(MES,ID_NUMORD,ORDEN_CIUDAD,CIUDAD,matches("^cont"))
+      select(MES,NORDEST,ORDEN_CIUDAD,CIUDAD,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>%
       pivot_longer(cols = 5:ncol(prod_cont_ori),
@@ -1324,7 +1320,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>%
-      select(MES,ID_NUMORD,ORDEN_CIUDAD,CIUDAD,matches("^var"))
+      select(MES,NORDEST,ORDEN_CIUDAD,CIUDAD,matches("^var"))
     
     prod_cont_var <- prod_cont_var %>%
       pivot_longer(cols = 5:ncol(prod_cont_var),
@@ -1341,12 +1337,12 @@ f8_cregiones<-function(directorio,anio,mes){
       pivot_wider(names_from = ANIO_MES, values_from = VARIACION)
     
     prod_cont_fin <- prod_cont_var %>%
-      left_join(prod_cont_ori, by=c("ID_NUMORD"="ID_NUMORD",
+      left_join(prod_cont_ori, by=c("NORDEST"="NORDEST",
                                     "ORDEN_CIUDAD"="ORDEN_CIUDAD",
                                     "CIUDAD"="CIUDAD"))
     
     
-    prod_cont_fin <- prod_cont_fin[,c("ID_NUMORD","ORDEN_CIUDAD","CIUDAD",
+    prod_cont_fin <- prod_cont_fin[,c("NORDEST","ORDEN_CIUDAD","CIUDAD",
                                       paste0("var_",anio_inte,"_",mes_inte),
                                       paste0("var_",anio,"_",mes),
                                       paste0("cont_",anio_inte,"_",mes_inte),
@@ -1376,16 +1372,16 @@ f8_cregiones<-function(directorio,anio,mes){
   colnames(horas_ciudest) <- paste0(names(horas_ciudest),"_horas")
   
   Ciudes_estab <- prod_ciudest %>% 
-    left_join(vent_ciudest,by=c("ID_NUMORD_prod"="ID_NUMORD_vent",
+    left_join(vent_ciudest,by=c("NORDEST_prod"="NORDEST_vent",
                                 "ORDEN_CIUDAD_prod"="ORDEN_CIUDAD_vent",
                                 "CIUDAD_prod"="CIUDAD_vent")) %>% 
-    left_join(emp_ciudest,by=c("ID_NUMORD_prod"="ID_NUMORD_emp",
+    left_join(emp_ciudest,by=c("NORDEST_prod"="NORDEST_emp",
                                "ORDEN_CIUDAD_prod"="ORDEN_CIUDAD_emp",
                                "CIUDAD_prod"="CIUDAD_emp")) %>% 
-    left_join(sueld_ciudest,by=c("ID_NUMORD_prod"="ID_NUMORD_sueld",
+    left_join(sueld_ciudest,by=c("NORDEST_prod"="NORDEST_sueld",
                                  "ORDEN_CIUDAD_prod"="ORDEN_CIUDAD_sueld",
                                  "CIUDAD_prod"="CIUDAD_sueld")) %>% 
-    left_join(horas_ciudest,by=c("ID_NUMORD_prod"="ID_NUMORD_horas",
+    left_join(horas_ciudest,by=c("NORDEST_prod"="NORDEST_horas",
                                  "ORDEN_CIUDAD_prod"="ORDEN_CIUDAD_horas",
                                  "CIUDAD_prod"="CIUDAD_horas"))
   
@@ -1393,14 +1389,14 @@ f8_cregiones<-function(directorio,anio,mes){
   n_ciud_est <- colnames(Ciudes_estab)
   
   Ciudes_estab <- Ciudes_estab %>% 
-    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("ID_NUMORD_prod"="ID_NUMORD"))
+    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("NORDEST_prod"="NORDEST"))
   
   Ciudes_estab <- Ciudes_estab %>% 
-    select(ID_NUMORD_prod,NOMBRE_ESTAB,NOVEDAD,CLASE_CIIU4,
+    select(NORDEST_prod,NOMBRE_ESTABLECIMIENTO,NOVEDAD,CLASE_CIIU4,
            DOMINIO_39,c(n_ciud_est[2:length(n_ciud_est)])) %>%
-    arrange(ORDEN_CIUDAD_prod,ID_NUMORD_prod) %>% 
-    rename(Norden=ID_NUMORD_prod,
-           Nombre=NOMBRE_ESTAB,
+    arrange(ORDEN_CIUDAD_prod,NORDEST_prod) %>% 
+    rename(Norden=NORDEST_prod,
+           Nombre=NOMBRE_ESTABLECIMIENTO,
            Nov=NOVEDAD,
            EMMET_Clae=CLASE_CIIU4,
            Dom_39=DOMINIO_39,
@@ -1427,12 +1423,12 @@ f8_cregiones<-function(directorio,anio,mes){
   
   Depto_est <- function(var_inte){
     agreg_inte <- data %>%
-      select(ANIO,MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
+      select(ANIO,MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,
              {{var_inte}})
     
     
     prod_cont <- agreg_inte %>%
-      group_by(ANIO,MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO) %>%
+      group_by(ANIO,MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO) %>%
       summarise(PRODREAL=sum({{var_inte}}))
     
     
@@ -1444,7 +1440,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND_0 <- data %>%
       select(ANIO,MES,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,{{var_inte}}) %>%
       group_by(ANIO,MES) %>%
-      summarise(ID_NUMORD=0,
+      summarise(NORDEST=0,
                 ORDEN_DEPTO=0,
                 INCLUSION_NOMBRE_DEPTO="Total Industria",
                 TOTAL=sum({{var_inte}}))
@@ -1479,7 +1475,7 @@ f8_cregiones<-function(directorio,anio,mes){
     T_IND <- T_IND %>%
       pivot_wider(names_from = ANIO, values_from = TOTAL)
     
-    T_IND <- rbind(T_IND,T_IND_0 %>% select(!ID_NUMORD))
+    T_IND <- rbind(T_IND,T_IND_0 %>% select(!NORDEST))
     
     colnames(T_IND) <- paste0(names(T_IND),"_T")
     
@@ -1503,7 +1499,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_ori <- prod_cont_ori %>%
-      select(MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,matches("^cont"))
+      select(MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,matches("^cont"))
     
     prod_cont_ori <- prod_cont_ori %>%
       pivot_longer(cols = 5:ncol(prod_cont_ori),
@@ -1521,7 +1517,7 @@ f8_cregiones<-function(directorio,anio,mes){
     
     
     prod_cont_var <- prod_cont %>%
-      select(MES,ID_NUMORD,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,matches("^var"))
+      select(MES,NORDEST,ORDEN_DEPTO,INCLUSION_NOMBRE_DEPTO,matches("^var"))
     
     prod_cont_var <- prod_cont_var %>%
       pivot_longer(cols = 5:ncol(prod_cont_var),
@@ -1538,12 +1534,12 @@ f8_cregiones<-function(directorio,anio,mes){
       pivot_wider(names_from = ANIO_MES, values_from = VARIACION)
     
     prod_cont_fin <- prod_cont_var %>%
-      left_join(prod_cont_ori, by=c("ID_NUMORD"="ID_NUMORD",
+      left_join(prod_cont_ori, by=c("NORDEST"="NORDEST",
                                     "ORDEN_DEPTO"="ORDEN_DEPTO",
                                     "INCLUSION_NOMBRE_DEPTO"="INCLUSION_NOMBRE_DEPTO"))
     
     
-    prod_cont_fin <- prod_cont_fin[,c("ID_NUMORD","ORDEN_DEPTO",
+    prod_cont_fin <- prod_cont_fin[,c("NORDEST","ORDEN_DEPTO",
                                       "INCLUSION_NOMBRE_DEPTO",
                                       paste0("var_",anio_inte,"_",mes_inte),
                                       paste0("var_",anio,"_",mes),
@@ -1551,7 +1547,7 @@ f8_cregiones<-function(directorio,anio,mes){
                                       paste0("cont_",anio,"_",mes))]
     
     prod_cont_fin <- prod_cont_fin %>% 
-      arrange(ORDEN_DEPTO,ID_NUMORD)
+      arrange(ORDEN_DEPTO,NORDEST)
     
   }
   
@@ -1578,16 +1574,16 @@ f8_cregiones<-function(directorio,anio,mes){
   
   
   Dep_est <- prod_deptoest %>% 
-    left_join(vent_deptoest,by=c("ID_NUMORD_prod"="ID_NUMORD_vent",
+    left_join(vent_deptoest,by=c("NORDEST_prod"="NORDEST_vent",
                                  "ORDEN_DEPTO_prod"="ORDEN_DEPTO_vent",
                                  "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_vent")) %>% 
-    left_join(emp_deptoest,by=c("ID_NUMORD_prod"="ID_NUMORD_emp",
+    left_join(emp_deptoest,by=c("NORDEST_prod"="NORDEST_emp",
                                 "ORDEN_DEPTO_prod"="ORDEN_DEPTO_emp",
                                 "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_emp")) %>% 
-    left_join(sueld_deptoest,by=c("ID_NUMORD_prod"="ID_NUMORD_sueld",
+    left_join(sueld_deptoest,by=c("NORDEST_prod"="NORDEST_sueld",
                                   "ORDEN_DEPTO_prod"="ORDEN_DEPTO_sueld",
                                   "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_sueld")) %>% 
-    left_join(horas_deptoest,by=c("ID_NUMORD_prod"="ID_NUMORD_horas",
+    left_join(horas_deptoest,by=c("NORDEST_prod"="NORDEST_horas",
                                   "ORDEN_DEPTO_prod"="ORDEN_DEPTO_horas",
                                   "INCLUSION_NOMBRE_DEPTO_prod"="INCLUSION_NOMBRE_DEPTO_horas"))
   
@@ -1596,20 +1592,20 @@ f8_cregiones<-function(directorio,anio,mes){
   
   nomb_estab <- data %>% 
     filter((ANIO==anio & MES==mes)) %>% 
-    select(ID_NUMORD,NOMBRE_ESTAB,CLASE_CIIU4,NOVEDAD,
+    select(NORDEST,NOMBRE_ESTABLECIMIENTO,CLASE_CIIU4,NOVEDAD,
            ORDENDOMINDEPTO,AGREG_DOMINIO_REG) 
   
   
   Dep_est <- Dep_est %>% 
-    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("ID_NUMORD_prod"="ID_NUMORD"))
+    left_join(nomb_estab %>% select(!c(ANIO,MES)), by=c("NORDEST_prod"="NORDEST"))
   
   Dep_est <- Dep_est %>% 
-    select(ID_NUMORD_prod,NOMBRE_ESTAB,NOVEDAD,CLASE_CIIU4,
+    select(NORDEST_prod,NOMBRE_ESTABLECIMIENTO,NOVEDAD,CLASE_CIIU4,
            DOMINIO_39,ORDENDOMINDEPTO,AGREG_DOMINIO_REG,
            c(n_dep_est[2:length(n_dep_est)])) %>% 
-    arrange(ORDEN_DEPTO_prod,ORDENDOMINDEPTO,ID_NUMORD_prod) %>% 
-    rename(Norden=ID_NUMORD_prod,
-           Nombre=NOMBRE_ESTAB,
+    arrange(ORDEN_DEPTO_prod,ORDENDOMINDEPTO,NORDEST_prod) %>% 
+    rename(Norden=NORDEST_prod,
+           Nombre=NOMBRE_ESTABLECIMIENTO,
            Nov=NOVEDAD,
            EMMET_Clae=CLASE_CIIU4,
            Dom_39=DOMINIO_39,
