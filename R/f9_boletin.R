@@ -49,6 +49,7 @@ f9_boletin <- function(directorio, mes, anio, tipo = "word") {
   library(installr)
   library(readxl)
   library(lubridate)
+  source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   if (!rmarkdown::pandoc_available()) {
     # Si no está configurado correctamente, instalar pandoc
     url <- "https://github.com/jgm/pandoc/releases/tag/3.1.6.1/pandoc-3.1.6.1-windows-x86_64.msi"
@@ -78,7 +79,7 @@ f9_boletin <- function(directorio, mes, anio, tipo = "word") {
   } else {
     ruta_boletin_rmd <- file.path(directorio, "boletin","boletin", "boletin_versionP.Rmd")
   }
-  parametros <- as.data.frame(read_excel(paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx")))
+  parametros <- as.data.frame(read_excel(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S6_boletin/parametros_boletin.xlsx")))
   meses_b <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
 
 
@@ -111,7 +112,7 @@ f9_boletin <- function(directorio, mes, anio, tipo = "word") {
                                   Anio_grafico=parametros[8,2]
                                   ),
                     output_file = paste0("boletin_", fecha_formateada2),
-                    output_dir = file.path(directorio, "results", "S6_boletin"))
+                    output_dir = file.path(directorio,"data",anio,meses[mes], "results", "S6_boletin"))
 }
 
 

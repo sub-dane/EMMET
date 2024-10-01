@@ -45,7 +45,7 @@ f8_cregiones<-function(directorio,mes,anio){
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
   
   # Cargar bases y variables ------------------------------------------------
-data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+data<-read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
 colnames(data) <- colnames_format(data)
   
   num_cols <- sapply(data, is.numeric)
@@ -71,7 +71,7 @@ colnames(data) <- colnames_format(data)
   # Crear un nuevo libro de Excel -------------------------------------------
   
   wb <- openxlsx::createWorkbook()
-  Salida<-paste0(directorio,"/results/S5_anexos/cuadros_territoriales_",meses[mes],"_",anio,".xlsx")
+  Salida<-paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S5_anexos/cuadros_territoriales_",meses[mes],"_",anio,".xlsx")
   
   # Define el formato de número con un decimal para la columna de números
   num_formato <- createStyle(numFmt = "0.0")

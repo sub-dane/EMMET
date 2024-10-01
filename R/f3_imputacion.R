@@ -66,7 +66,7 @@ f3_imputacion <- function(directorio,mes,anio,avance=100) {
   
   
   #cargar base estandarizada
-  datos <- read.csv(paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+  datos <- read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),fileEncoding = "latin1")
   
   #crear una copia de la base de datos
   datoscom=datos
@@ -94,10 +94,10 @@ f3_imputacion <- function(directorio,mes,anio,avance=100) {
   datos <- filter(datos, !(ANIO == anio & MES == mes))
   #cargar la base de alertas
   if(avance==100){
-    wowimp=read.csv(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+    wowimp=read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".xlsx"))
     
   }else{
-    wowimp=read.csv(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".csv"),fileEncoding = "latin1")
+    wowimp=read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".xlsx"))
     
   }
   wowimp=as.data.frame(wowimp)
@@ -294,8 +294,8 @@ f3_imputacion <- function(directorio,mes,anio,avance=100) {
     )
   
   # Exportar la base imputada -------------------------------
-  write.csv(mes_ant,paste0(directorio,"/results/S3_imputacion/EMMET_reglas_consistencia_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
+  write_xlsx(mes_ant,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S3_imputacion/EMMET_reglas_consistencia_",meses[mes],anio,".xlsx"))
   
-  write.csv(imputa,paste0(directorio,"/results/S3_imputacion/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
+  write.csv(imputa,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S3_imputacion/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
 }
 

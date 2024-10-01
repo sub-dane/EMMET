@@ -110,7 +110,7 @@ f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
   ### función detección de outliers
 
   ##Identificar si el archivo existe y preguntarle al usuario si desea sobreescribirlo
-  archivo=paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv")
+  archivo=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv")
   if (file.exists(archivo)) {
     respuesta <- readline(paste("El archivo", archivo, "ya existe. ¿Desea sobreescribirlo? (S/N): "))
     if (toupper(respuesta) != "S") {
@@ -128,11 +128,12 @@ f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
   library(data.table)
   library(forecast)
   library(tsoutliers)
+  library(writexl)
   source("https://raw.githubusercontent.com/sub-dane/EMMET/main/R/utils.R")
 
 
   #cargar la base de datos
-  base_panel <-  fread(paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"), encoding = "Latin-1")
+  base_panel <-  fread(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"), encoding = "Latin-1")
 
   #convertir la base en data frame y convertir variables de año y mes en numéricas
   datos<- as.data.frame(base_panel)
@@ -252,9 +253,9 @@ f2_identificacion_alertas <- function(directorio,mes,anio,avance=100) {
 
   # Exportar data frame con la identificación de posibles casos de imputación -------------------------------
 if(avance==100){
-  write.csv(final,paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
+  write_xlsx(final,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".xlsx"))
 }else{
-  write.csv(final,paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".csv"),row.names=F,fileEncoding = "latin1")
+  write_xlsx(final,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,"_",avance,".xlsx"))
 }
 }
 

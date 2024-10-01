@@ -290,15 +290,15 @@ f5_anacional <- function(directorio,
   meses_enu <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio",
                  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
   meses_min<-tolower(meses_enu)
-  data <- read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
-  indices_14<- read_xlsx(paste0(directorio,"/data/Indices_2014.xlsx"))
-  indices_01<- read_xlsx(paste0(directorio,"/data/Indices_2001.xlsx"))
+  data <- read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+  indices_14<- read_xlsx(paste0(directorio,"/data/Archivos_necesarios/Indices_2014.xlsx"))
+  indices_01<- read_xlsx(paste0(directorio,"/data/Archivos_necesarios/Indices_2001.xlsx"))
   
   
   # Archivos de entrada y salida --------------------------------------------
   
-  formato<-paste0(directorio,"/data/anexos_nacional_emmet_formato.xlsx")
-  Salida<-paste0(directorio,"/results/S5_anexos/anexos_nacional_emmet_",meses[mes],"_",anio,".xlsx")
+  formato<-paste0(directorio,"/data/Archivos_necesarios/anexos_nacional_emmet_formato.xlsx")
+  Salida<-paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S5_anexos/anexos_nacional_emmet_",meses[mes],"_",anio,".xlsx")
   
   
   
@@ -2228,7 +2228,7 @@ if(mes==12){
   # # 8. Desestacionalizacion -------------------------------------------------
   # 
   # CALENDAR.FN <- function(From_year,To_year){
-  #   festivos <- read_xlsx(paste0(directorio,"/data/festivos/festivos.xlsx"))
+  #   festivos <- read_xlsx(paste0(directorio,"/data/Archivos_necesarios/festivos.xlsx"))
   #   #read_xlsx(paste0(directorio,"/data/festivos/festivos.xlsx"))
   #   days <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
   #   #days <- c("Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado")

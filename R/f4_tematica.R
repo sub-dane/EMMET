@@ -115,7 +115,7 @@ f4_tematica <- function(directorio,mes,anio){
 
   # Cargar bases y variables ------------------------------------------------
 
-  base_panel2<-read.csv(paste0(directorio,"/results/S3_imputacion/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+  base_panel2<-read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S3_imputacion/EMMET_PANEL_imputada_",meses[mes],anio,".csv"),fileEncoding = "latin1")
   base_deflactor             <- read_excel(paste0(directorio,"/data/",anio,"/",meses[mes],"/DEFLACTOR_",meses[mes],anio,".xlsx"))
   colnames(base_deflactor)   <- colnames_format(base_deflactor)
 
@@ -242,6 +242,6 @@ f4_tematica <- function(directorio,mes,anio){
   base_tematica<-base_tematica(base_panel2)
 
 
-  write.csv(base_tematica,paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),row.names=F,fileEncoding ="latin1")
+  write.csv(base_tematica,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),row.names=F,fileEncoding ="latin1")
 
 }

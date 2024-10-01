@@ -54,7 +54,7 @@ f10_shiny <- function(directorio, mes, anio) {
 
   ruta_app_shiny <- file.path(directorio,"Shiny_alertas/app_fun_critica_2.R")
 
-  ruta_archivo_excel<-paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv")
+  ruta_archivo_excel<-paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv")
 
   #identificar si el archivo de tematica existe
   if (!file.exists(ruta_archivo_excel)) {

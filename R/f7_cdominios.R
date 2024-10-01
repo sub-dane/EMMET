@@ -39,7 +39,7 @@ f7_cdominios<-function(directorio,mes,anio){
   
   # Cargar bases y variables ------------------------------------------------
   
-data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+data<-read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
 colnames(data) <- colnames_format(data)
   
   num_cols <- sapply(data, is.numeric)
@@ -51,7 +51,7 @@ colnames(data) <- colnames_format(data)
   # Crear un nuevo libro de Excel -------------------------------------------
   
   wb <- openxlsx::createWorkbook()
-  Salida<-paste0(directorio,"/results/S5_anexos/cuadros_nacionales_",meses[mes],"_",anio,".xlsx")
+  Salida<-paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S5_anexos/cuadros_nacionales_",meses[mes],"_",anio,".xlsx")
  
   estilo_pink <- createStyle(fontColour = "black", fgFill = "#FFCCFF")
   estilo_green <- createStyle(fontColour = "black", fgFill = "#99FF99")

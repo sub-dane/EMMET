@@ -92,7 +92,7 @@ f1_integracion <- function(directorio,
  base_logistica           <-  base_logistica %>%
    mutate_at(vars("DEPARTAMENTO"),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 
- parametro <- read.xlsx(paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), sheet = "Vector")
+ parametro <- read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S6_boletin/parametros_boletin.xlsx"), sheet = "Vector")
 
  base_logistica           <-  base_logistica %>%
    select(parametro$Variables)
@@ -172,6 +172,6 @@ base_panel           <-  base_panel %>%
 
  # Exportar bases de Datos integradas -------------------------------------------------
 
- write.csv(base_panel,paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
+ write.csv(base_panel,paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),row.names=F,fileEncoding = "latin1")
 
 }

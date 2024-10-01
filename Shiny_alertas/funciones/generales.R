@@ -24,11 +24,11 @@ colnames_format <- function(base){
 
 # Bases -------------------------------------------------------------------
 
-base_panel<- read.csv(paste0(directorio,"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),fileEncoding = "latin1")
-alertas <-  read.csv(paste0(directorio,"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+base_panel<- read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S1_integracion/EMMET_PANEL_trabajo_original_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+alertas <-  read.xlsx(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas/EMMET_PANEL_alertas_",meses[mes],anio,".xlsx"))
 base_panel<- as.data.frame(base_panel)
 
-tematica<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+tematica<-read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
 
 # Tratamiento bases -------------------------------------------------------
 

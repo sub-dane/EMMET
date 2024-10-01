@@ -61,14 +61,11 @@ f0_inicial<-function(directorio,mes,anio){
       print(mensaje)
     }
   }
-  #crear la carpeta results
-  ruta=paste0(directorio,"/results")
-  crearCarpeta(ruta)
 
-  #crear la carpeta de integracion
-  ruta=paste0(directorio,"/results/S1_integracion")
-  crearCarpeta(ruta)
-
+  #crear la carpeta doc
+  ruta=paste0(directorio,"/doc")
+  crearCarpeta(ruta)  
+  
   #crear la carpeta data
   ruta=paste0(directorio,"/data")
   crearCarpeta(ruta)
@@ -79,28 +76,38 @@ f0_inicial<-function(directorio,mes,anio){
   
   #crear la carpeta del mes
   ruta=paste0(directorio,"/data/",anio,"/",meses[mes])
+  crearCarpeta(ruta)  
+  
+  
+    #crear la carpeta results
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results")
   crearCarpeta(ruta)
 
+  #crear la carpeta de integracion
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S1_integracion")
+  crearCarpeta(ruta)
+
+
   #crear la carpeta de alertas
-  ruta=paste0(directorio,"/results/S2_identificacion_alertas")
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S2_identificacion_alertas")
   crearCarpeta(ruta)
 
   #crear la carpeta de imputacion
-  ruta=paste0(directorio,"/results/S3_imputacion")
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S3_imputacion")
   crearCarpeta(ruta)
 
 
   #crear la carpeta de tematica
-  ruta=paste0(directorio,"/results/S4_tematica")
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica")
   crearCarpeta(ruta)
 
 
   #crear la carpeta anexos
-  ruta=paste0(directorio,"/results/S5_anexos")
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S5_anexos")
   crearCarpeta(ruta)
 
   #crear la carpeta boletin
-  ruta=paste0(directorio,"/results/S6_boletin")
+  ruta=paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S6_boletin")
   crearCarpeta(ruta)
 
   para_boletin <- data.frame(parametro = c("IC_prod","IC_ven","IC_empl","TNR","TI_prod","TI_ven","TI_empl","Anio_grafico"),
@@ -129,14 +136,14 @@ f0_inicial<-function(directorio,mes,anio){
 
   #Descargar archivo necesario
   
-  url_excel <- "https://github.com/sub-dane/EMMET/raw/main/festivos.zip"
+  url_excel <- "https://github.com/sub-dane/EMMET/raw/main/Archivos_necesarios.zip"
   
   # Definir el nombre y la ubicación del archivo de Excel descargado
-  archivo_excel <- file.path(directorio, "data/festivos.zip")
+  archivo_excel <- file.path(directorio, "data/Archivos_necesarios.zip")
   
   # Descargar el archivo de Excel desde GitHub
   download.file(url_excel, destfile = archivo_excel)
-  unzip(archivo_excel, exdir = file.path(directorio, "data/festivos"))  
+  unzip(archivo_excel, exdir = file.path(directorio, "data/Archivos_necesarios"))  
   library(openxlsx)
 
   wb <- createWorkbook()
@@ -151,6 +158,6 @@ f0_inicial<-function(directorio,mes,anio){
   writeData(wb, sheet = "Vector", list(variables_iniciales))  
   
   # Escribir el vector en la segunda hoja del archivo Excel
-  saveWorkbook(wb,file =  paste0(directorio,"/results/S6_boletin/parametros_boletin.xlsx"), overwrite = TRUE)
-  print(paste0("Se creo el archivo parametros_boletin.xlsx en ",directorio,"/results/S6_boletin/"))
+  saveWorkbook(wb,file =  paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S6_boletin/parametros_boletin.xlsx"), overwrite = TRUE)
+  print(paste0("Se creo el archivo parametros_boletin.xlsx en ",directorio,"/data/",anio,"/",meses[mes],"/results/S6_boletin/"))
 }

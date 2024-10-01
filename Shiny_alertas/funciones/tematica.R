@@ -4,9 +4,6 @@ require(dplyr)
 require(plotly)
 
 
-tematica       <-read_xlsx("D:/Documentos/CAMILA/DANE/APP/APP/bases/EMMET Base Temática definitiva Nov2022....xlsx")
-
-
 colnames(tematica) <- colnames_format(tematica)
 tematica<-  tematica%>% mutate_at(vars(contains("OBSE")),~str_replace_all(.,pattern="[^[:alnum:]]",replacement=" "))
 

@@ -279,7 +279,7 @@ f6_aterritorial <- function(directorio,
   meses_enu <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio",
                  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
   meses_min<-tolower(meses_enu)
-  data<-read.csv(paste0(directorio,"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
+  data<-read.csv(paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S4_tematica/EMMET_PANEL_tematica_",meses[mes],anio,".csv"),fileEncoding = "latin1")
 
   deptos <- data %>%
     select(INCLUSION_NOMBRE_DEPTO,ORDEN_DEPTO)
@@ -295,8 +295,8 @@ f6_aterritorial <- function(directorio,
   
   # Archivos de entrada y salida --------------------------------------------
   
-  formato <- paste0(directorio,"/data/anexos_territorial_emmet_formato.xlsx")
-  Salida<-paste0(directorio,"/results/S5_anexos/anexos_territorial_emmet_",meses[mes],"_",anio,".xlsx")
+  formato <- paste0(directorio,"/data/Archivos_necesarios/anexos_territorial_emmet_formato.xlsx")
+  Salida<-paste0(directorio,"/data/",anio,"/",meses[mes],"/results/S5_anexos/anexos_territorial_emmet_",meses[mes],"_",anio,".xlsx")
   
   # Limpieza de nombres de variable -----------------------------------------
   
