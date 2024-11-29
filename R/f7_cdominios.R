@@ -364,7 +364,7 @@ colnames(data) <- colnames_format(data)
     dominio_inte <- data %>% 
       select(NOMBRE_ESTABLECIMIENTO,ANIO,MES, DOMINIO_39,ORDEN_DEPTO,CLASE_CIIU4,NOVEDAD,
              NORDEST,{{var_inte}}) %>% 
-      filter(DOMINIO_39==dominio) 
+      filter(DOMINIO_39==dominio & ANIO %in% c(anio-2,anio-1,anio)) 
     
     prod_cont <- dominio_inte  %>%
       group_by(ANIO,MES,NORDEST) %>% 
@@ -424,11 +424,11 @@ colnames(data) <- colnames_format(data)
     for(i in 3:n){
       if(i==n){
         a <- prod_cont_ori[,i]-prod_cont_ori[,i-1]
-        b <- prod_cont_ori[,(i+(anio-2018))]
+        b <- prod_cont_ori[,(i+(anio-(anio-2)))]
         prod_cont_ori[paste0("cont_",names(prod_cont_ori)[i])]  <- (a/b)*100
       }else{
         a <- prod_cont_ori[,i+1]-prod_cont_ori[,i]
-        b <- prod_cont_ori[,(i+(anio-2018)+1)]
+        b <- prod_cont_ori[,(i+(anio-(anio-2))+1)]
         prod_cont_ori[paste0("cont_",names(prod_cont_ori)[i+1])]  <- (a/b)*100
       }
     }
