@@ -1,6 +1,6 @@
 ##Script DANILO
 
-directorio="C:/Users/USUARIO/OneDrive - dane.gov.co/proyecto2/pruebas Danilo"
+directorio="C:/Users/USUARIO/OneDrive - dane.gov.co/proyecto2/pruebas Danilo2"
 mes=10
 anio=2024  
 
